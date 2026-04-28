@@ -1429,7 +1429,7 @@ html,body{
               <span class="rec-alert-text">It has been 5 days since you received a reply</span>
             </div>
             <div class="rec-alert-actions">
-              <button class="rec-alert-view-btn">
+              <button class="rec-alert-view-btn" onclick="openRecordFocus()">
                 <svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1.5v11M1.5 7h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
                 View
               </button>
@@ -2180,6 +2180,45 @@ catchupToggle.addEventListener('click', e=>{
     let tries = 0;
     const iv = setInterval(() => { if (wire() || ++tries > 20) clearInterval(iv); }, 100);
   }
+})();
+</script>
+
+<script>
+(function(){
+  const STYLE_ID = 'record-focus-modal-style';
+  if (!document.getElementById(STYLE_ID)) {
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = `
+      .focus-modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:10000; display:flex; align-items:center; justify-content:center; animation:focusModalFade .18s ease both;}
+      .focus-modal-frame{width:93vw; height:93vh; background:#fff; border:none; border-radius:12px; box-shadow:0 24px 64px rgba(0,0,0,.32); animation:focusModalRise .22s ease both;}
+      @keyframes focusModalFade{from{opacity:0}to{opacity:1}}
+      @keyframes focusModalRise{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:translateY(0)}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function closeModal(){
+    const bd = document.querySelector('.focus-modal-backdrop');
+    if (bd) bd.remove();
+    document.body.style.overflow = '';
+  }
+
+  window.openRecordFocus = function(){
+    if (document.querySelector('.focus-modal-backdrop')) return;
+    const backdrop = document.createElement('div');
+    backdrop.className = 'focus-modal-backdrop';
+    const iframe = document.createElement('iframe');
+    iframe.className = 'focus-modal-frame';
+    iframe.src = 'focus-mode-meeting-followup.html';
+    backdrop.appendChild(iframe);
+    backdrop.addEventListener('click', (ev) => { if (ev.target === backdrop) closeModal(); });
+    document.body.appendChild(backdrop);
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.addEventListener('message', (e) => { if (e && e.data === 'closeFocusMode') closeModal(); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 })();
 </script>
 
