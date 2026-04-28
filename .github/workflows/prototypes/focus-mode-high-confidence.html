@@ -1,0 +1,3026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Focus Mode — High Confidence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>@font-face{font-family:'HubSpot Sans';src:local('HubSpot Sans');}</style>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f5f5f5;
+  --surface:#fff;
+  --surface-recessed:#f0f0f0;
+  --border:#e6e6e6;
+  --border-subtle:#cccccc;
+  --text:#141414;
+  --text-secondary:#666666;
+  --text-muted:#8a8a8a;
+  --radius-sm:8px;
+  --radius-lg:16px;
+  --radius-full:9999px;
+  --shadow:0 1px 5px 0 rgba(44,61,79,.12);
+  --shadow-md:0 4px 12px rgba(44,61,79,.10);
+  --shadow-lg:0 24px 48px rgba(44,61,79,.12);
+}
+
+html,body{
+  width:100%; height:100%;
+  background:transparent;
+  display:flex;
+  align-items:stretch;
+  justify-content:stretch;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  color:var(--text);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+
+/* ─── SCRIM ─── */
+.scrim{
+  display:none;
+}
+
+/* ─── MODAL GROUP (modal + optional pinned sidebar) ─── */
+.modal-group{
+  display:flex;
+  align-items:stretch;
+  gap:16px;
+  width:100%; height:100%;
+  max-width:100%; max-height:100%;
+  position:relative;
+  z-index:1;
+}
+
+/* ─── MODAL SHELL ─── */
+.modal{
+  background:var(--surface);
+  border-radius:0;
+  box-shadow:none;
+  width:100%; height:100%;
+  max-width:100%; max-height:100%;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  flex-shrink:1;
+  min-width:0;
+  position:relative;
+}
+
+/* AI-thinking gradient behind the email panel — used on initial load and when AI is modifying */
+.right-panel.ai-thinking{
+  background:
+    radial-gradient(ellipse at center, #e8c5c5 0%, rgba(232,197,197,0) 60%) 15% 20% / 70% 70% no-repeat,
+    radial-gradient(ellipse at center, #cfdce8 0%, rgba(207,220,232,0) 60%) 85% 80% / 70% 70% no-repeat,
+    var(--bg);
+  animation:aiThinkDrift 3s ease-in-out infinite;
+}
+@keyframes aiThinkDrift{
+  0%,100%{background-position: 10% 15%, 90% 85%, 0 0;}
+  50%{background-position: 90% 15%, 10% 65%, 0 0;}
+}
+
+/* ─── HEADER ─── */
+.modal-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:32px 24px 24px 32px;
+  flex-shrink:0;
+  border-bottom:1px solid var(--border);
+}
+
+.header-title-group{
+  display:flex;
+  align-items:flex-end;
+  gap:12px;
+}
+
+.modal-title{
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  font-size:24px;
+  font-weight:400;
+  color:var(--text);
+  line-height:30px;
+  letter-spacing:0px;
+}
+
+.modal-subtitle{
+  font-size:16px;
+  font-weight:300;
+  color:var(--text-secondary);
+  line-height:1.5;
+  padding-bottom:1px;
+  font-feature-settings:'ss01';
+  opacity:0;
+}
+
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.icon-btn{
+  width:32px;
+  height:32px;
+  border-radius:var(--radius-full);
+  border:1px solid var(--border-subtle);
+  background:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text);
+  transition:background .12s;
+  flex-shrink:0;
+}
+.icon-btn:hover{background:#f5f5f5}
+.icon-btn.close{border:none;background:none;width:24px;height:24px;color:var(--text-muted)}
+.icon-btn.close:hover{background:none;color:var(--text)}
+
+/* ─── BODY ─── */
+.modal-body{
+  display:flex;
+  gap:0;
+  padding:0;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+}
+
+/* ─── LEFT PANEL ─── */
+.left-panel{
+  flex:1;
+  min-width:436px;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+/* When sidebar pinned, context collapses to 1 col — left panel min shrinks too */
+.modal-group.sidebar-pinned .left-panel{
+  min-width:210px;
+}
+
+.context-scroll{
+  flex:1;
+  min-height:0;
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  overflow-y:auto;
+  padding:24px;
+  scrollbar-width:none;
+}
+.context-scroll::-webkit-scrollbar{display:none}
+
+.context-col{
+  flex:1;
+  min-width:210px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* ─── CARDS ─── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg);
+  flex-shrink:0;
+  position:relative;
+  transition:border-color .15s, box-shadow .15s;
+}
+.card:hover{
+  box-shadow:0 4px 48px 0 rgba(20,20,20,.08);
+}
+.card.selected{
+  border-color:var(--text);
+}
+
+/* Card check button */
+.card-check{
+  display:none;
+}
+.card:hover .card-check{opacity:1}
+.card-check:hover{border-color:#8a8a8a}
+.card-check.checked{
+  background:#333333;
+  border-color:#333333;
+  color:#fff;
+  fill:#fff;
+  opacity:1;
+}
+.card.selected .card-check{opacity:1}
+.card-check svg{width:11px;height:11px;stroke-width:2.5}
+
+/* Card resize handle */
+.card-resize{
+  display:flex;
+  justify-content:flex-end;
+  padding:8px 8px 6px;
+  opacity:0;
+  transition:opacity .12s;
+  flex-shrink:0;
+}
+.card:hover .card-resize{opacity:1}
+.card-resize svg{width:9px;height:9px;color:var(--text-muted)}
+
+/* Contact card */
+.contact-card-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:24px 24px 0 24px;
+}
+
+.drag-handle{display:none}
+
+.contact-meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:1;
+  min-width:0;
+}
+
+.avatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  object-fit:cover;
+  flex-shrink:0;
+}
+
+.avatar-fallback{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#1a1a18,#555);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  font-weight:600;
+  color:#fff;
+  flex-shrink:0;
+}
+
+.contact-name{
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  line-height:20px;
+  font-feature-settings:'ss01';
+}
+
+.contact-role{
+  font-size:12px;
+  font-weight:400;
+  color:var(--text-secondary);
+  margin-top:1px;
+  line-height:18px;
+  font-feature-settings:'ss01';
+}
+
+.card-body{
+  padding:16px 24px 24px;
+  font-size:14px;
+  font-weight:400;
+  color:var(--text-secondary);
+  line-height:1.6;
+  font-feature-settings:'ss01';
+}
+.card-body p+p{margin-top:12px}
+
+
+/* Previous emails */
+.email-list{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  padding:16px 24px 12px;
+}
+
+.email-row{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  height:56px;
+  padding:12px 0;
+  cursor:pointer;
+  transition:background .1s;
+  font-size:14px;
+}
+
+.email-chevron{
+  width:16px;
+  height:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-muted);
+  flex-shrink:0;
+  transition:transform .15s;
+}
+.email-row.expanded .email-chevron{transform:rotate(90deg)}
+
+.email-row-content{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:1;
+  min-width:0;
+}
+
+.email-sender{
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-feature-settings:'ss01';
+  padding:4px 8px;
+  flex-shrink:0;
+}
+
+.email-subject{
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-feature-settings:'ss01';
+  padding:4px 8px;
+  flex:1;
+  min-width:0;
+}
+
+.email-date{
+  font-size:14px;
+  font-weight:300;
+  color:var(--text-secondary);
+  white-space:nowrap;
+  flex-shrink:0;
+  text-align:right;
+}
+
+.email-preview{
+  display:none;
+}
+.email-preview.open{display:block}
+
+.email-preview-outer{
+  background:#f0f0f0;
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:4px;
+}
+
+.email-preview-card{
+  background:var(--surface);
+  border-radius:8px;
+  padding:10px;
+  font-size:14px;
+  font-weight:300;
+  color:var(--text-secondary);
+  line-height:24px;
+  font-feature-settings:'ss01';
+}
+
+/* Company logo in card header */
+.company-logo{
+  width:32px;
+  height:32px;
+  border-radius:6px;
+  background:linear-gradient(135deg,#f97316,#ef4444);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  flex-shrink:0;
+}
+
+/* Activity list */
+.activity-list{
+  padding:16px 24px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.activity-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.activity-label{
+  font-size:14px;
+  font-weight:400;
+  color:var(--text-secondary);
+  line-height:24px;
+  font-feature-settings:'ss01';
+}
+
+.activity-time{
+  font-size:12px;
+  font-weight:300;
+  color:#8a8a8a;
+  line-height:14px;
+  font-feature-settings:'ss01';
+}
+
+/* ─── DIALOG FOOTER ─── */
+.dialog-footer{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:20px 24px;
+  border-top:1px solid var(--border);
+  background:var(--surface);
+  flex-shrink:0;
+  min-height:80px;
+  box-sizing:border-box;
+}
+
+.breeze-fab-wrap{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  flex-shrink:0;
+}
+.breeze-fab-hint{
+  position:absolute;
+  bottom:calc(100% + 8px);
+  left:6px;
+  padding:2px 8px;
+  font-size:11px;
+  font-weight:500;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  color:var(--text);
+  background:var(--surface);
+  border:1px solid var(--border-subtle);
+  border-radius:4px;
+  box-shadow:var(--shadow);
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .12s;
+}
+.breeze-fab-wrap:hover .breeze-fab-hint{opacity:1}
+
+.breeze-fab{
+  display:flex;
+  align-items:center;
+  gap:0;
+  height:32px;
+  padding:0;
+  border-radius:var(--radius-full);
+  border:1px solid var(--border-subtle);
+  background:var(--surface);
+  cursor:pointer;
+  transition:border-color .15s, box-shadow .15s, padding .18s ease;
+  flex-shrink:0;
+}
+.breeze-fab-wrap:hover .breeze-fab{
+  border-color:#ff4800;
+  box-shadow:var(--shadow);
+  padding-right:6px;
+}
+.breeze-fab-star{
+  width:30px;
+  height:30px;
+  border:none;
+  background:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.breeze-fab-actions{
+  display:flex;
+  align-items:center;
+  gap:2px;
+  max-width:0;
+  overflow:hidden;
+  opacity:0;
+  transition:max-width .2s ease, opacity .15s ease, margin-left .2s ease;
+  margin-left:0;
+}
+.breeze-fab-wrap:hover .breeze-fab-actions{
+  max-width:120px;
+  opacity:1;
+  margin-left:4px;
+}
+.breeze-fab-divider{
+  width:1px;
+  height:18px;
+  background:var(--border);
+  margin-right:2px;
+  flex-shrink:0;
+}
+.breeze-fab-btn{
+  width:26px;
+  height:26px;
+  border:none;
+  background:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-secondary);
+  border-radius:50%;
+  flex-shrink:0;
+  padding:0;
+  transition:background .1s, color .1s;
+}
+.breeze-fab-btn:hover{color:var(--text);background:#f5f5f3}
+.breeze-fab-btn svg{width:14px;height:14px}
+
+.footer-spacer{flex:1}
+
+.nav-counter-label{
+  font-size:13px;
+  color:var(--text-secondary);
+  font-weight:400;
+  white-space:nowrap;
+  margin-right:4px;
+}
+
+.btn-footer-nav{
+  height:32px;
+  padding:0 16px;
+  border-radius:var(--radius-full);
+  border:1px solid var(--border-subtle);
+  background:var(--surface);
+  font-size:14px;
+  font-weight:400;
+  color:var(--text);
+  cursor:pointer;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  transition:background .1s, border-color .1s;
+  flex-shrink:0;
+}
+.btn-footer-nav:hover{background:#f5f5f5;border-color:#8a8a8a}
+.btn-footer-nav:disabled{color:var(--text-muted);border-color:var(--border);cursor:default;background:none}
+
+/* ─── CHAT PANEL (floating overlay over entire Focus Mode) ─── */
+.chat-panel{
+  position:absolute;
+  top:auto;
+  bottom:68px;
+  left:24px;
+  right:auto;
+  width:var(--col-width,280px);
+  max-height:calc(100% - 108px - 68px);
+  background:var(--surface);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm);
+  display:none;
+  flex-direction:column;
+  z-index:50;
+  overflow:hidden;
+  box-shadow:var(--shadow-lg);
+}
+.chat-panel.open{
+  display:flex;
+  animation:fadeUp .2s ease both;
+}
+
+/* ─── BREEZE WELCOME STATE ─── */
+.breeze-welcome{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  padding:24px 20px 20px;
+  gap:0;
+  min-height:0;
+  overflow:hidden;
+}
+.has-messages .breeze-welcome{display:none}
+
+.breeze-star-hero{
+  width:36px;
+  height:36px;
+  margin-bottom:16px;
+  flex-shrink:0;
+}
+
+.breeze-welcome-text{
+  font-size:22px;
+  font-weight:400;
+  line-height:1.3;
+  color:var(--text);
+  margin-bottom:auto;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+}
+
+.breeze-chips{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:20px;
+  flex-shrink:0;
+}
+
+.breeze-chip{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:8px 14px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-full);
+  background:var(--surface);
+  font-size:14px;
+  font-weight:400;
+  color:var(--text);
+  cursor:pointer;
+  transition:border-color .15s, background .1s;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  text-align:left;
+  width:100%;
+}
+.breeze-chip:hover{border-color:#8a8a8a;background:#f5f5f5}
+.breeze-chip svg{flex-shrink:0;color:var(--text-muted)}
+.breeze-chip-plain{justify-content:flex-start}
+
+/* ─── FOOTER OMNIBAR (replaces FAB when chat is open) ─── */
+.footer-omnibar{
+  display:none;
+  align-items:center;
+  gap:0;
+  flex:none;
+  width:var(--col-width,280px);
+  height:40px;
+  border:1.5px solid #ff4800;
+  border-radius:var(--radius-full);
+  background:var(--surface);
+  overflow:hidden;
+}
+.footer-omnibar.visible{display:flex}
+
+.omnibar-back-btn{
+  width:36px;
+  height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:none;
+  border:none;
+  cursor:pointer;
+  color:var(--text);
+  flex-shrink:0;
+  padding-left:4px;
+}
+
+.omnibar-text-input{
+  flex:1;
+  border:none;
+  outline:none;
+  font-size:14px;
+  font-weight:400;
+  color:var(--text);
+  background:none;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  min-width:0;
+}
+.omnibar-text-input::placeholder{color:var(--text-muted)}
+
+.omnibar-add-btn,.omnibar-send-btn{
+  width:32px;
+  height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:none;
+  border:none;
+  cursor:pointer;
+  color:var(--text-secondary);
+  flex-shrink:0;
+}
+.omnibar-send-btn{padding-right:2px}
+
+.chat-panel-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+
+.chat-panel-title{
+  font-size:13px;
+  font-weight:500;
+  color:var(--text);
+  flex:1;
+  font-feature-settings:'ss01';
+}
+
+.chat-hdr-btn{
+  width:26px;
+  height:26px;
+  border:none;
+  background:none;
+  border-radius:50%;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-secondary);
+  transition:background .1s;
+  flex-shrink:0;
+}
+.chat-hdr-btn:hover{background:#f5f5f3}
+.chat-hdr-btn svg{width:16px;height:16px}
+
+.chat-hdr-cursor-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:4px 9px 4px 7px;
+  border:1px solid var(--border);
+  background:#fff;
+  color:var(--text-secondary);
+  border-radius:var(--radius-full);
+  cursor:pointer;
+  font-size:12px;
+  font-weight:500;
+  font-family:inherit;
+  transition:background .12s, border-color .12s, color .12s;
+  flex-shrink:0;
+}
+.chat-hdr-cursor-btn svg{width:12px;height:12px}
+.chat-hdr-cursor-btn:hover{
+  background:#fff5f0;
+  border-color:#ff4800;
+  color:#ff4800;
+}
+body.cursor-mode .chat-hdr-cursor-btn{
+  background:#ff4800;
+  border-color:#ff4800;
+  color:#fff;
+}
+
+/* ─── CHAT SIDEBAR (pinned) ─── */
+.chat-sidebar{
+  display:none;
+  width:356px;
+  flex-shrink:0;
+  flex-direction:column;
+  background:var(--surface);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+}
+.chat-sidebar #sidebarMessages{
+  flex:1;
+  min-height:0;
+  max-height:none;
+  padding:12px;
+}
+.chat-sidebar.active{
+  display:flex;
+  animation:fadeUp .2s ease both;
+}
+
+/* When sidebar is pinned, collapse context to a single column and hide the floating chat UI */
+.modal-group.sidebar-pinned .context-scroll{
+  flex-direction:column;
+}
+.modal-group.sidebar-pinned .context-col{
+  width:100%;
+  min-width:0;
+}
+.modal-group.sidebar-pinned .chat-panel{
+  display:none !important;
+}
+/* Pinned: 50/50 split between context and action, with the action panel
+   rendered as a rounded floating card inside the modal */
+.modal-group.sidebar-pinned .left-panel{
+  flex:0 0 40%;
+  min-width:0;
+}
+.modal-group.sidebar-pinned .right-panel{
+  flex:1 !important;
+  width:auto !important;
+  min-width:0 !important;
+  margin:16px 0 16px 16px !important;
+  border-radius:16px 0 0 16px !important;
+  border-left:none !important;
+  overflow:hidden !important;
+}
+.modal-group.sidebar-pinned .composer-footer{
+  display:none;
+}
+
+/* Inline prompts — always live inside the chat canvas, never in a separate section */
+.inline-prompts{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:16px;
+}
+
+/* ─── CURSOR-SELECT MODE (activated from the FAB cursor icon) ─── */
+body.cursor-mode .context-scroll .card{
+  cursor:pointer;
+  transition:border-color .15s, box-shadow .15s, transform .15s;
+}
+body.cursor-mode .context-scroll .card:hover{
+  border-color:#ff4800;
+  box-shadow:0 0 0 2px rgba(255,72,0,0.18), var(--shadow);
+  transform:translateY(-1px);
+}
+body.cursor-mode .context-scroll .card.selected{
+  border-color:#ff4800;
+}
+.cursor-mode-hint{
+  position:fixed;
+  top:24px;
+  left:50%;
+  transform:translateX(-50%);
+  display:none;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  background:var(--text);
+  color:#fff;
+  border-radius:var(--radius-full);
+  font-size:13px;
+  font-weight:400;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  box-shadow:var(--shadow-lg);
+  z-index:200;
+  animation:fadeUp .2s ease both;
+}
+body.cursor-mode .cursor-mode-hint{display:inline-flex}
+.cursor-mode-hint svg{width:14px;height:14px;color:#ff4800}
+.cursor-mode-hint kbd{
+  display:inline-block;
+  padding:1px 6px;
+  background:rgba(255,255,255,0.15);
+  border-radius:3px;
+  font-size:11px;
+  font-family:inherit;
+  margin-left:4px;
+}
+
+.chat-prompt-pill{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:8px 14px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-full);
+  background:var(--surface);
+  font-size:14px;
+  font-weight:400;
+  color:var(--text);
+  cursor:pointer;
+  transition:border-color .15s, background .1s;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  text-align:left;
+  width:100%;
+}
+.chat-prompt-pill:hover{border-color:#8a8a8a;background:#f5f5f5}
+.chat-prompt-pill svg{flex-shrink:0;color:var(--text-muted)}
+.chat-prompt-pill.plain{justify-content:flex-start;width:auto;align-self:flex-start}
+
+.chat-messages{
+  overflow-y:auto;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  scrollbar-width:none;
+  min-height:0;
+  max-height:0;
+}
+.has-messages .chat-messages{
+  flex:1;
+  padding:12px;
+  max-height:none;
+}
+.chat-messages::-webkit-scrollbar{display:none}
+
+.chat-context-marker{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:4px 12px;
+  flex-shrink:0;
+}
+.chat-context-marker::before,
+.chat-context-marker::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border);
+}
+.chat-context-marker-label{
+  font-size:11px;
+  color:var(--text-muted);
+  white-space:nowrap;
+  font-weight:400;
+}
+
+.chat-message{animation:fadeUp .2s ease both}
+
+.chat-user-bubble{
+  background:#f0f0ee;
+  border-radius:12px 12px 4px 12px;
+  padding:8px 12px;
+  font-size:13px;
+  color:var(--text);
+  margin-left:auto;
+  max-width:85%;
+  font-weight:300;
+  line-height:1.5;
+}
+
+.chat-breeze-reply{
+  font-size:13px;
+  font-weight:300;
+  color:var(--text-secondary);
+  line-height:1.65;
+  padding:2px 2px;
+}
+
+/* AI message — sparkle avatar + "AI" label, body text, action buttons */
+.ai-msg{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:2px 2px;
+}
+.ai-msg-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.ai-msg-avatar{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  background:var(--surface);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.ai-msg-avatar svg{width:12px;height:12px}
+.ai-msg-label{
+  font-size:13px;
+  font-weight:500;
+  color:var(--text-secondary);
+  font-feature-settings:'ss01';
+}
+.ai-msg-body{
+  font-size:14px;
+  font-weight:400;
+  color:var(--text);
+  line-height:1.5;
+  font-feature-settings:'ss01';
+}
+.ai-msg-actions{
+  display:flex;
+  gap:8px;
+  margin-top:2px;
+}
+
+.chat-result-card{
+  background:var(--surface);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  transition:border-color .15s, box-shadow .15s;
+}
+.chat-result-card:hover{
+  box-shadow:0 4px 48px 0 rgba(20,20,20,.08);
+}
+
+/* Chat card header — mirrors contact-card-header */
+.chat-result-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:24px 24px 0 24px;
+}
+
+.chat-result-header-left{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:1;
+  min-width:0;
+}
+
+.chat-result-title{
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  font-feature-settings:'ss01';
+  line-height:20px;
+}
+
+.chat-result-body{
+  padding:16px 24px 24px;
+  font-size:14px;
+  font-weight:400;
+  color:var(--text-secondary);
+  line-height:1.6;
+  font-feature-settings:'ss01';
+}
+
+/* Add to context — Trellis secondary button style */
+.chat-add-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:12px;
+  font-weight:500;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  color:var(--text);
+  background:var(--surface);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-full);
+  padding:4px 12px;
+  cursor:pointer;
+  transition:background .1s, border-color .1s;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.chat-add-btn:hover{background:#f5f5f3;border-color:#b3b3b3}
+.chat-add-btn.added{color:var(--text-muted);border-color:var(--border);pointer-events:none}
+
+.chat-result-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:5px 0;
+  border-bottom:1px solid var(--border);
+  font-size:12px;
+}
+.chat-result-row:last-child{border-bottom:none}
+.chat-result-row-label{color:var(--text-muted);font-weight:400}
+.chat-result-row-value{color:var(--text);font-weight:400;text-align:right}
+
+.chat-assoc-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 0;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  font-size:12px;
+  transition:background .1s;
+  margin:0 -12px;
+  padding-left:12px;
+  padding-right:12px;
+}
+.chat-assoc-item:last-child{border-bottom:none}
+.chat-assoc-item:hover{background:#fafaf9}
+.chat-assoc-name{font-weight:500;color:var(--text)}
+.chat-assoc-type{color:var(--text-muted)}
+
+.chat-add-btn{
+  font-size:11px;
+  font-weight:400;
+  color:var(--text);
+  background:none;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-full);
+  padding:2px 8px;
+  cursor:pointer;
+  transition:background .1s;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.chat-add-btn:hover{background:#f5f5f3}
+.chat-add-btn.added{color:var(--text-muted);pointer-events:none}
+
+.chat-input-row{
+  display:none;
+}
+
+.chat-input{
+  flex:1;
+  border:none;
+  outline:none;
+  font-size:13px;
+  font-weight:300;
+  color:var(--text);
+  background:none;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+}
+.chat-input::placeholder{color:var(--text-muted)}
+
+.chat-send-btn{
+  width:24px;
+  height:24px;
+  border:none;
+  background:#333333;
+  border-radius:50%;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  flex-shrink:0;
+  transition:background .12s;
+}
+.chat-send-btn:hover{background:#333}
+
+/* ─── LOADING DOTS ─── */
+@keyframes blink{
+  0%,80%,100%{opacity:.2}
+  40%{opacity:1}
+}
+.loading-dots{display:inline-flex;align-items:center;gap:3px;padding:4px 2px}
+.loading-dots span{
+  display:inline-block;
+  width:5px;height:5px;
+  border-radius:50%;
+  background:var(--text-muted);
+  animation:blink 1.4s infinite both;
+}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+
+/* ─── DRAFT TOAST ─── */
+.draft-toast{
+  position:absolute;
+  bottom:72px;
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--text);
+  color:#fff;
+  font-size:12px;
+  font-weight:300;
+  padding:6px 14px;
+  border-radius:var(--radius-full);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+  z-index:20;
+  pointer-events:none;
+  animation:fadeUp .2s ease both;
+}
+.draft-toast .loading-dots span{background:#fff}
+
+/* ─── ONBOARDING DIAGRAM ─── */
+.wf-wrap{display:flex;gap:12px;margin:12px 0;align-items:center}
+.wf-pane{flex:1;background:#f5f5f3;border-radius:6px;padding:10px}
+.wf-pane-label{font-size:10px;font-weight:500;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.wf-mini-card{height:8px;background:var(--border-subtle);border-radius:3px;margin-bottom:5px}
+.wf-line{height:6px;background:var(--border-subtle);border-radius:3px;margin-bottom:6px}
+.w80{width:80%}.w60{width:60%}.w70{width:70%}.w45{width:45%}
+.wf-arrow-col{display:flex;flex-direction:column;align-items:center;color:var(--text-muted);font-size:14px}
+.wf-arr-label{font-size:10px;color:var(--text-muted)}
+.onboarding-msg-text{font-size:12.5px;color:var(--text-secondary);line-height:1.65}
+.onboarding-msg-hint{font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.5}
+
+/* ─── RIGHT PANEL: EMAIL COMPOSER ─── */
+.right-panel{
+  width:744px;
+  flex-shrink:1;
+  flex-grow:0;
+  min-width:460px;
+  background:var(--bg);
+  border-left:1px solid var(--border);
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+
+.composer{
+  background:var(--surface);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm);
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  flex:1;
+  position:relative;
+  z-index:1;
+}
+
+.composer-field{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 16px;
+  border-bottom:1px solid var(--border);
+  font-size:14px;
+  flex-shrink:0;
+}
+
+.field-label{
+  color:var(--text-muted);
+  width:50px;
+  flex-shrink:0;
+  font-weight:300;
+  font-size:13px;
+}
+
+.field-value{
+  font-weight:500;
+  color:var(--text);
+  font-feature-settings:'ss01';
+}
+
+.field-aux{
+  margin-left:auto;
+  display:flex;
+  gap:12px;
+  font-size:13px;
+  color:var(--text-secondary);
+  font-weight:300;
+}
+.field-aux span{cursor:pointer;transition:color .1s}
+.field-aux span:hover{color:var(--text)}
+
+.recipient-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:#f0f0ee;
+  border-radius:var(--radius-full);
+  padding:2px 10px 2px 8px;
+  font-size:13px;
+  font-weight:400;
+  color:var(--text);
+}
+
+.recipient-tag-remove{
+  width:14px;
+  height:14px;
+  border:none;
+  background:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-muted);
+  border-radius:50%;
+  padding:0;
+  transition:background .1s;
+}
+.recipient-tag-remove:hover{background:#e0e0e0}
+
+.hr{
+  height:1px;
+  background:var(--border);
+  flex-shrink:0;
+}
+
+/* Toolbar */
+.toolbar{
+  display:flex;
+  align-items:center;
+  gap:2px;
+  padding:6px 14px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+
+.tb-btn{
+  width:28px;
+  height:28px;
+  border:none;
+  background:none;
+  border-radius:4px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-secondary);
+  transition:background .1s;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  font-size:13px;
+}
+.tb-btn:hover{background:#f5f5f3}
+.tb-btn svg{width:14px;height:14px}
+
+.tb-sep{
+  width:1px;
+  height:16px;
+  background:var(--border);
+  margin:0 4px;
+  flex-shrink:0;
+}
+
+.tb-insert{
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:4px 12px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-full);
+  background:var(--surface);
+  font-size:12px;
+  font-weight:400;
+  color:var(--text);
+  cursor:pointer;
+  transition:background .1s;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+}
+.tb-insert:hover{background:#f5f5f3}
+.tb-insert svg{width:11px;height:11px;color:var(--text-secondary)}
+
+/* Email body */
+.email-body{
+  flex:1;
+  padding:24px;
+  font-size:14px;
+  font-weight:300;
+  line-height:1.8;
+  color:var(--text);
+  overflow-y:auto;
+  outline:none;
+  font-feature-settings:'ss01';
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+}
+.email-body p+p{margin-top:14px}
+
+/* Highlighted source text */
+.src{
+  border-radius:2px;
+  transition:background .15s;
+}
+.src-active{background:rgba(255,200,0,.4)}
+
+/* Provisional email state */
+.email-provisional-banner{
+  display:flex;align-items:center;gap:6px;
+  background:#e8f5fb;border-bottom:1px solid #b8dff0;
+  padding:8px 16px;font-size:12px;font-weight:400;
+  color:#0070a0;flex-shrink:0;font-feature-settings:'ss01';
+}
+.email-body.provisional{border-left:2px solid #0091ae}
+[data-new]{background:rgba(0,145,174,.12);border-radius:2px}
+
+/* Accept change prompt */
+.accept-change-card{
+  background:#fafaf9;border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm);padding:12px 14px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.accept-change-label{font-size:12.5px;font-weight:400;color:var(--text);line-height:1.5;font-feature-settings:'ss01'}
+.accept-change-actions{display:flex;gap:8px}
+.btn-accept-yes{
+  display:inline-flex;align-items:center;gap:5px;
+  background:#333333;color:#fff;border:none;
+  border-radius:var(--radius-full);padding:5px 14px;
+  font-size:12px;font-weight:400;cursor:pointer;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;transition:background .12s;
+}
+.btn-accept-yes:hover{background:#333}
+.btn-accept-yes:disabled{background:#aaa;cursor:default}
+.btn-accept-no{
+  display:inline-flex;align-items:center;
+  background:none;color:var(--text-secondary);
+  border:1px solid #8a8a8a;
+  border-radius:var(--radius-full);padding:5px 14px;
+  font-size:12px;font-weight:400;cursor:pointer;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;transition:background .1s;
+}
+.btn-accept-no:hover{background:#f5f5f5;color:var(--text)}
+.btn-accept-no:disabled{opacity:.4;cursor:default}
+.accept-change-done{font-size:12px;font-weight:300;color:var(--text-muted);font-feature-settings:'ss01'}
+
+/* Footer */
+.composer-footer{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  padding:12px 16px 16px;
+  flex-shrink:0;
+}
+
+.btn-send{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#333333;
+  color:#fff;
+  border:none;
+  border-radius:var(--radius-full);
+  padding:9px 22px;
+  font-size:14px;
+  font-weight:400;
+  cursor:pointer;
+  font-family:'HubSpot Sans','Lexend Deca',sans-serif;
+  transition:background .12s,opacity .15s;
+}
+.btn-send:hover{background:#444444}
+.btn-send.sent{background:#666;pointer-events:none}
+
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.modal{animation:fadeUp .25s ease both}
+
+/* ── DEAL CREATED TOAST ── */
+#dealToast{position:fixed; bottom:32px; right:32px; width:280px;
+  background:#fff; border:1px solid #ccc; border-radius:16px;
+  box-shadow:0 6px 24px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
+  padding:10px; z-index:99999; display:none; flex-direction:column; gap:16px;
+  font-family:'HubSpot Sans','Inter',system-ui,sans-serif;}
+#dealToast.visible{display:flex; animation:dtToastEnter .45s cubic-bezier(.34,1.56,.64,1) both;}
+#dealToast.dismissing{display:flex; animation:dtToastExit .22s cubic-bezier(.4,0,1,1) both;}
+@keyframes dtToastEnter{from{opacity:0; transform:translateY(20px) scale(.95);} to{opacity:1; transform:translateY(0) scale(1);}}
+@keyframes dtToastExit{from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(10px) scale(.97);}}
+@keyframes dtGaugeFill{from{stroke-dasharray:0 119.4;} to{stroke-dasharray:74.0 119.4;}}
+.dt-top-row{display:flex; align-items:center; justify-content:space-between;}
+.dt-label{font-size:12px; font-weight:400; line-height:18px; color:#666;}
+.dt-close{width:24px; height:24px; border:none; background:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; border-radius:6px; color:#666;
+  flex-shrink:0; font-family:inherit;}
+.dt-close:hover{background:#f0f0f0; color:#141414;}
+.dt-body{display:flex; flex-direction:column; gap:24px;}
+.dt-card-row{display:flex; align-items:center; justify-content:space-between; height:48px;}
+.dt-card-info{display:flex; flex-direction:column; gap:5px; flex:1; min-width:0;}
+.dt-deal-name{font-size:14px; font-weight:500; line-height:20px; color:#141414;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.dt-meta{display:flex; align-items:center; gap:8px; height:24px;}
+.dt-avatars{display:flex; align-items:center; padding-right:4px;}
+.dt-av{width:24px; height:24px; border-radius:9999px; border:1.5px solid #fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:500; color:#141414; margin-left:-4px; flex-shrink:0;}
+.dt-av:first-child{margin-left:0;}
+.dt-av-lavender{background:#efe7f0;}
+.dt-av-teal{background:#e0fcfa;}
+.dt-av-green{background:#daefe1;}
+.dt-amount{font-size:12px; color:#666; white-space:nowrap;}
+.dt-score-wrap{flex-shrink:0; position:relative; width:50px; height:50px;}
+.dt-score-wrap svg{transform:rotate(-90deg);}
+.dt-score-label{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:500; color:#33475b;}
+.dt-actions{display:flex; align-items:center; gap:6px;}
+.dt-btn-open{height:28px; padding:0 16px; border-radius:9999px;
+  border:1px solid #8a8a8a; background:#fff; font-size:14px; color:#141414;
+  cursor:pointer; font-family:inherit; white-space:nowrap;}
+.dt-btn-open:hover{background:#f0f0f0;}
+.dt-btn-deals{height:28px; padding:0 16px; border-radius:9999px;
+  border:1px solid transparent; background:transparent; font-size:14px; color:#141414;
+  cursor:pointer; font-family:inherit; white-space:nowrap;}
+.dt-btn-deals:hover{background:#f0f0f0;}
+</style>
+</head>
+<body>
+
+<div class="scrim"></div>
+
+<div class="modal-group" id="modalGroup">
+
+<div class="chat-sidebar" id="chatSidebar">
+  <div class="chat-panel-header">
+    <span class="chat-panel-title" id="sidebarTitle">Ask Breeze</span>
+    <button class="chat-hdr-cursor-btn" onclick="toggleCursorMode()" title="AI cursor — select a context card" style="margin-right:auto">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 2.5l8.5 4.5-3.7 1.3L6.5 12.5 3 2.5Z"/>
+      </svg>
+      <span>Select</span>
+    </button>
+    <button class="chat-hdr-btn" onclick="unpinChat()" title="Pop out">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+        <path d="M9.27002 4.7749C9.46502 4.57995 9.78011 4.57993 9.9751 4.7749C10.1701 4.96989 10.1701 5.28498 9.9751 5.47998L8.33008 7.125L9.9751 8.77002C10.1701 8.96502 10.1701 9.28011 9.9751 9.4751C9.87512 9.57507 9.75008 9.6201 9.62012 9.62012L9.625 9.625C9.49501 9.62499 9.37001 9.57497 9.27002 9.47998L7.27002 7.47998C7.07504 7.28498 7.07502 6.9699 7.27002 6.7749L9.27002 4.7749Z"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12.625 2.125C13.45 2.125 14.125 2.8 14.125 3.625V10.625C14.125 11.45 13.45 12.125 12.625 12.125H1.625C0.8 12.125 0.125 11.45 0.125 10.625V3.625C0.125 2.8 0.8 2.125 1.625 2.125H12.625ZM4.625 11.125H12.625C12.9 11.125 13.125 10.9 13.125 10.625V3.625C13.125 3.35 12.9 3.125 12.625 3.125H4.625V11.125ZM1.625 3.125C1.35 3.125 1.125 3.35 1.125 3.625V10.625C1.125 10.9 1.35 11.125 1.625 11.125H3.625V3.125H1.625Z"/>
+      </svg>
+    </button>
+    <button class="chat-hdr-btn" onclick="closeSidebar()" title="Close">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+        <path d="M1.77516 1.76908C1.97011 1.57438 2.28481 1.57436 2.47975 1.76908L7.12477 6.41947L11.7698 1.77445C11.9648 1.57945 12.2799 1.57945 12.4749 1.77445C12.6698 1.96945 12.6699 2.28454 12.4749 2.47953L7.82984 7.12455L7.8401 7.11918L12.4851 11.7642C12.68 11.9592 12.68 12.2743 12.4851 12.4693C12.3852 12.5642 12.2601 12.6142 12.1301 12.6143C12.0002 12.6143 11.8751 12.5692 11.7752 12.4693L7.13014 7.82425L2.48512 12.4693C2.38517 12.5642 2.26006 12.6142 2.13014 12.6143C2.00018 12.6143 1.87514 12.5692 1.77516 12.4693C1.58016 12.2743 1.58016 11.9592 1.77516 11.7642L6.41969 7.11918L1.77516 2.47416C1.58016 2.27916 1.58016 1.96408 1.77516 1.76908Z"/>
+      </svg>
+    </button>
+  </div>
+  <div class="chat-messages" id="sidebarMessages"></div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="sidebarInput" placeholder="Ask anything…" onkeydown="if(event.key==='Enter')sendSidebarChat()">
+    <button class="chat-send-btn" onclick="sendSidebarChat()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div class="modal">
+
+  <!-- ══ HEADER ══ -->
+  <header class="modal-header">
+    <div class="header-title-group">
+      <h1 class="modal-title" id="modalTitle">Reply to Evelyn Auchincloss</h1>
+      <p class="modal-subtitle" id="modalSubtitle">Customer Success at SalesRabbit</p>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn close" title="Close" onclick="closeModal()" aria-label="Close">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2.82884 2.8187C3.16304 2.48493 3.70253 2.4849 4.03671 2.8187L11.9996 10.7908L19.9625 2.82791C20.2968 2.49362 20.8369 2.49362 21.1712 2.82791C21.5054 3.1622 21.5055 3.70235 21.1712 4.03661L13.2083 11.9995L13.2259 11.9903L21.1888 19.9532C21.5229 20.2874 21.5228 20.8276 21.1888 21.1619C21.0174 21.3247 20.803 21.4104 20.5802 21.4105C20.3575 21.4105 20.1431 21.3332 19.9717 21.1619L12.0088 13.199L4.04592 21.1619C3.87458 21.3247 3.6601 21.4104 3.43738 21.4105C3.21459 21.4105 3.00024 21.3332 2.82884 21.1619C2.49455 20.8276 2.49455 20.2875 2.82884 19.9532L10.7909 11.9903L2.82884 4.0274C2.49455 3.69312 2.49455 3.15298 2.82884 2.8187Z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ══ BODY ══ -->
+  <div class="modal-body" id="modalBody">
+
+    <!-- ── LEFT PANEL ── -->
+    <div class="left-panel" id="leftPanel">
+
+      <div class="context-scroll">
+
+      <!-- Left column: Contact + Previous Emails -->
+      <div class="context-col" id="contextCol1">
+
+        <!-- Contact card -->
+        <div class="card" data-card-key="contact" data-card-title="Evelyn Auchincloss">
+          <div class="contact-card-header">
+            <div class="drag-handle">
+              <svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor">
+                <path d="m12,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1ZM18,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm-6,5.99h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm6,0h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Z"/>
+              </svg>
+            </div>
+            <div class="contact-meta">
+              <img class="avatar"
+                   src="assets/17ac9866f0607ab7695645dafb8313ca23e24e10.png"
+                   alt="Evelyn Auchincloss"
+                   onerror="this.style.display='none';document.getElementById('avatarFallback').style.display='flex'">
+              <div id="avatarFallback" class="avatar-fallback" style="display:none">EA</div>
+              <div>
+                <div class="contact-name" id="contactNameEl">Evelyn Auchincloss</div>
+                <div class="contact-role" id="contactRoleEl">Customer Success at SalesRabbit</div>
+              </div>
+            </div>
+            <button class="card-check" onclick="toggleCard(this)" title="Select card">
+              <svg width="13" height="13" viewBox="0 0 32 32" fill="currentColor">
+                <path d="M14.13,21.5c-.29,0-.58-.11-.81-.33l-4.99-4.99c-.45-.45-.45-1.17,0-1.62.45-.45,1.17-.45,1.62,0l4.18,4.18,7.91-7.92c.45-.45,1.17-.45,1.62,0,.45.45.45,1.17,0,1.62l-8.72,8.72c-.22.22-.52.33-.81.33Z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="card-body">
+            <p>Evelyn leads customer success initiatives at SalesRabbit, coordinating onboarding workflows and cross-team visibility as the company scales its CS operations.</p>
+            <p>She is actively evaluating solutions and is a key internal coordinator in this buying process, bringing stakeholders together for a more tactical conversation.</p>
+          </div>
+          <div class="card-resize">
+            <svg viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="9" y1="3" x2="3" y2="9"/><line x1="9" y1="6" x2="6" y2="9"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Previous emails card -->
+        <div class="card" data-card-key="emails" data-card-title="Previous emails">
+          <div class="contact-card-header">
+            <div class="drag-handle">
+              <svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor">
+                <path d="m12,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1ZM18,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm-6,5.99h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm6,0h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Z"/>
+              </svg>
+            </div>
+            <div class="contact-meta">
+              <div>
+                <div class="contact-name">Previous emails</div>
+              </div>
+            </div>
+            <button class="card-check" onclick="toggleCard(this)" title="Select card">
+              <svg width="13" height="13" viewBox="0 0 32 32" fill="currentColor">
+                <path d="M14.13,21.5c-.29,0-.58-.11-.81-.33l-4.99-4.99c-.45-.45-.45-1.17,0-1.62.45-.45,1.17-.45,1.62,0l4.18,4.18,7.91-7.92c.45-.45,1.17-.45,1.62,0,.45.45.45,1.17,0,1.62l-8.72,8.72c-.22.22-.52.33-.81.33Z"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="email-list">
+
+          <!-- Row 1 — starts expanded -->
+          <div class="email-row expanded" onclick="toggleEmailRow(this)">
+            <span class="email-chevron">
+              <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="m23.52,15.26c-.06-.11-.12-.21-.19-.3h0s-.11-.17-.11-.17c0-.01,0-.03,0-.04s0-.03,0-.04h0S11.57,2.5,11.57,2.5c-.32-.31-.75-.5-1.23-.5-.97,0-1.75.78-1.75,1.75,0,.43.15.82.41,1.13h0s10.5,11.02,10.5,11.02l-10.5,11.03c-.37.32-.59.79-.59,1.32,0,.97.78,1.75,1.75,1.75.55,0,1.05-.26,1.37-.66h0s11.65-12.2,11.65-12.2c0-.01,0-.03,0-.04s0-.03,0-.04h0s.11-.18.11-.18c.07-.09.13-.19.18-.29h0c.03-.1.05-.21.07-.32h0c.03-.1.05-.22.06-.33h0c0-.13-.03-.24-.06-.35h0s0-.03,0-.05c0-.1,0-.2-.02-.29h0s0,0,0,0Z"/></svg>
+            </span>
+            <div class="email-row-content">
+              <span class="email-sender">Evelyn</span>
+              <span class="email-subject">Re: Following up on next steps</span>
+            </div>
+            <span class="email-date">3 days ago</span>
+          </div>
+          <div class="email-preview open">
+            <div class="email-preview-outer">
+              <div class="email-preview-card">
+                <p>Hi Gabby,</p>
+                <p>Thanks for the follow-up. We had our internal kickoff last week and I think now is a good time to bring in a few more stakeholders. Can we find time next week?</p>
+                <p>Best,<br>Evelyn</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="email-row" onclick="toggleEmailRow(this)">
+            <span class="email-chevron">
+              <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="m23.52,15.26c-.06-.11-.12-.21-.19-.3h0s-.11-.17-.11-.17c0-.01,0-.03,0-.04s0-.03,0-.04h0S11.57,2.5,11.57,2.5c-.32-.31-.75-.5-1.23-.5-.97,0-1.75.78-1.75,1.75,0,.43.15.82.41,1.13h0s10.5,11.02,10.5,11.02l-10.5,11.03c-.37.32-.59.79-.59,1.32,0,.97.78,1.75,1.75,1.75.55,0,1.05-.26,1.37-.66h0s11.65-12.2,11.65-12.2c0-.01,0-.03,0-.04s0-.03,0-.04h0s.11-.18.11-.18c.07-.09.13-.19.18-.29h0c.03-.1.05-.21.07-.32h0c.03-.1.05-.22.06-.33h0c0-.13-.03-.24-.06-.35h0s0-.03,0-.05c0-.1,0-.2-.02-.29h0s0,0,0,0Z"/></svg>
+            </span>
+            <div class="email-row-content">
+              <span class="email-sender">Gabby</span>
+              <span class="email-subject">Following up on next steps</span>
+            </div>
+            <span class="email-date">5 days ago</span>
+          </div>
+          <div class="email-preview">
+            <div class="email-preview-outer">
+              <div class="email-preview-card">
+                <p>Hi Evelyn,</p>
+                <p>Just checking in — would love to set up time to discuss how we can support your CS team as you scale onboarding. Let me know what works.</p>
+                <p>Best,<br>Gabby</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="email-row" onclick="toggleEmailRow(this)">
+            <span class="email-chevron">
+              <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="m23.52,15.26c-.06-.11-.12-.21-.19-.3h0s-.11-.17-.11-.17c0-.01,0-.03,0-.04s0-.03,0-.04h0S11.57,2.5,11.57,2.5c-.32-.31-.75-.5-1.23-.5-.97,0-1.75.78-1.75,1.75,0,.43.15.82.41,1.13h0s10.5,11.02,10.5,11.02l-10.5,11.03c-.37.32-.59.79-.59,1.32,0,.97.78,1.75,1.75,1.75.55,0,1.05-.26,1.37-.66h0s11.65-12.2,11.65-12.2c0-.01,0-.03,0-.04s0-.03,0-.04h0s.11-.18.11-.18c.07-.09.13-.19.18-.29h0c.03-.1.05-.21.07-.32h0c.03-.1.05-.22.06-.33h0c0-.13-.03-.24-.06-.35h0s0-.03,0-.05c0-.1,0-.2-.02-.29h0s0,0,0,0Z"/></svg>
+            </span>
+            <div class="email-row-content">
+              <span class="email-sender">Evelyn</span>
+              <span class="email-subject">Intro — Growzz &amp; SalesRabbit</span>
+            </div>
+            <span class="email-date">2 wks ago</span>
+          </div>
+          <div class="email-preview">
+            <div class="email-preview-outer">
+              <div class="email-preview-card">
+                <p>Hi Gabby,</p>
+                <p>Great to connect at the conference. I'd love to learn more about how Growzz could help with our CS workflows — let's find time to chat.</p>
+                <p>Evelyn</p>
+              </div>
+            </div>
+          </div>
+
+          </div><!-- /email-list -->
+          <div class="card-resize">
+            <svg viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="9" y1="3" x2="3" y2="9"/><line x1="9" y1="6" x2="6" y2="9"/>
+            </svg>
+          </div>
+        </div>
+
+      </div><!-- /left context col -->
+
+      <!-- Right column: Company + Activity -->
+      <div class="context-col" id="contextCol2">
+
+        <!-- Company card -->
+        <div class="card" data-card-key="company" data-card-title="SalesRabbit">
+          <div class="contact-card-header">
+            <div class="drag-handle">
+              <svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor">
+                <path d="m12,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1ZM18,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm-6,5.99h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm6,0h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Z"/>
+              </svg>
+            </div>
+            <div class="contact-meta">
+              <div class="company-logo" style="background:#e8f0fe;color:#3c4ec2;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:6px;flex-shrink:0">SR</div>
+              <div>
+                <div class="contact-name">SalesRabbit</div>
+                <div class="contact-role">Sales Enablement · 200–500 employees</div>
+              </div>
+            </div>
+            <button class="card-check" onclick="toggleCard(this)" title="Select card">
+              <svg width="13" height="13" viewBox="0 0 32 32" fill="currentColor">
+                <path d="M14.13,21.5c-.29,0-.58-.11-.81-.33l-4.99-4.99c-.45-.45-.45-1.17,0-1.62.45-.45,1.17-.45,1.62,0l4.18,4.18,7.91-7.92c.45-.45,1.17-.45,1.62,0,.45.45.45,1.17,0,1.62l-8.72,8.72c-.22.22-.52.33-.81.33Z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="card-body">
+            <p><strong>SalesRabbit</strong> is a sales enablement platform for field sales teams, offering tools for territory management, lead tracking, and performance analytics.</p>
+            <p>The company is scaling its customer success operations and evaluating platforms that can improve onboarding consistency and cross-team visibility as they grow.</p>
+          </div>
+          <div class="card-resize">
+            <svg viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="9" y1="3" x2="3" y2="9"/><line x1="9" y1="6" x2="6" y2="9"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Recent interactions card -->
+        <div class="card" data-card-key="activity" data-card-title="Recent activity">
+          <div class="contact-card-header">
+            <div class="drag-handle">
+              <svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor">
+                <path d="m12,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1ZM18,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm-6,5.99h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm6,0h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Z"/>
+              </svg>
+            </div>
+            <div class="contact-meta">
+              <div>
+                <div class="contact-name">Recent interactions</div>
+              </div>
+            </div>
+            <button class="card-check" onclick="toggleCard(this)" title="Select card">
+              <svg width="13" height="13" viewBox="0 0 32 32" fill="currentColor">
+                <path d="M14.13,21.5c-.29,0-.58-.11-.81-.33l-4.99-4.99c-.45-.45-.45-1.17,0-1.62.45-.45,1.17-.45,1.62,0l4.18,4.18,7.91-7.92c.45-.45,1.17-.45,1.62,0,.45.45.45,1.17,0,1.62l-8.72,8.72c-.22.22-.52.33-.81.33Z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <span class="activity-label">Follow up call</span>
+              <span class="activity-time">Yesterday</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-label">Kick off meeting</span>
+              <span class="activity-time">5 days ago</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-label">Contact created</span>
+              <span class="activity-time">12 days ago</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-label">Websites interaction</span>
+              <span class="activity-time">34 days ago</span>
+            </div>
+          </div>
+          <div class="card-resize">
+            <svg viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="9" y1="3" x2="3" y2="9"/><line x1="9" y1="6" x2="6" y2="9"/>
+            </svg>
+          </div>
+        </div>
+
+      </div><!-- /right context col -->
+
+      </div><!-- /context-scroll -->
+
+    </div><!-- /left-panel -->
+
+    <!-- ── RIGHT PANEL: EMAIL COMPOSER ── -->
+    <div class="right-panel">
+      <div class="composer">
+
+        <!-- To -->
+        <div class="composer-field">
+          <span class="field-label">To</span>
+          <span class="recipient-tag" id="recipientTag">
+            <span id="recipientName">Evelyn Auchincloss</span>
+            <button class="recipient-tag-remove" aria-label="Remove">
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </span>
+          <div class="field-aux">
+            <span>Cc</span>
+            <span>Bcc</span>
+          </div>
+        </div>
+
+        <!-- From -->
+        <div class="composer-field">
+          <span class="field-label">From</span>
+          <span class="field-value">gabby@growhouzz.com</span>
+        </div>
+
+        <!-- Subject -->
+        <div class="composer-field">
+          <span class="field-label">Subject</span>
+          <span class="field-value">Following up on next steps</span>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Formatting toolbar -->
+        <div class="toolbar">
+          <button class="tb-btn" title="Bold" style="font-weight:700">B</button>
+          <button class="tb-btn" title="Italic" style="font-style:italic">I</button>
+          <button class="tb-btn" title="Underline" style="text-decoration:underline">U</button>
+          <button class="tb-btn" title="Text">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <polyline points="4 7 4 4 20 4 20 7"/>
+              <line x1="9" y1="20" x2="15" y2="20"/>
+              <line x1="12" y1="4" x2="12" y2="20"/>
+            </svg>
+          </button>
+          <div class="tb-sep"></div>
+          <button class="tb-btn" title="Insert link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+          </button>
+          <button class="tb-btn" title="Insert image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </button>
+          <button class="tb-btn" title="Attach file">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+          <div class="tb-sep"></div>
+          <button class="tb-insert" onclick="insertMeetingLink()">
+            Insert
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Email body -->
+        <div class="email-body" id="emailBody" contenteditable="true" spellcheck="false"></div>
+
+        <div class="hr"></div>
+
+        <!-- Footer -->
+        <div class="composer-footer">
+          <button class="btn-send" id="sendBtn" onclick="sendEmail()">Send</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /modal-body -->
+
+  <!-- Chat Panel (floating overlay on entire Focus Mode — sits above the footer) -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-panel-header">
+      <span class="chat-panel-title" id="chatPanelTitle">Breeze-5</span>
+      <button class="chat-hdr-cursor-btn" onclick="toggleCursorMode()" title="AI cursor — select a context card" style="margin-right:auto">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 2.5l8.5 4.5-3.7 1.3L6.5 12.5 3 2.5Z"/>
+        </svg>
+        <span>Select</span>
+      </button>
+      <button class="chat-hdr-btn" onclick="pinChat()" title="Pin sidebar">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+          <path d="M7.77005 4.77979C7.96503 4.58491 8.28016 4.58489 8.47513 4.77979L10.4751 6.77979C10.6701 6.97475 10.67 7.28986 10.4751 7.48486L8.47513 9.48486C8.37515 9.58484 8.25012 9.62986 8.12015 9.62988L8.12503 9.625C7.99504 9.62499 7.87004 9.57497 7.77005 9.47998C7.57506 9.28498 7.57505 8.9699 7.77005 8.7749L9.41507 7.12988L7.77005 5.48486C7.57512 5.28986 7.57507 4.97476 7.77005 4.77979Z"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12.625 2.125C13.45 2.125 14.125 2.8 14.125 3.625V10.625C14.125 11.45 13.45 12.125 12.625 12.125H1.62503C0.800031 12.125 0.125031 11.45 0.125031 10.625V3.625C0.125031 2.8 0.800031 2.125 1.62503 2.125H12.625ZM4.62503 11.125H12.625C12.9 11.125 13.125 10.9 13.125 10.625V3.625C13.125 3.35 12.9 3.125 12.625 3.125H4.62503V11.125ZM1.62503 3.125C1.35003 3.125 1.12503 3.35 1.12503 3.625V10.625C1.12503 10.9 1.35003 11.125 1.62503 11.125H3.62503V3.125H1.62503Z"/>
+        </svg>
+      </button>
+      <button class="chat-hdr-btn" onclick="closeChat()" title="Close">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+          <path d="M1.77516 1.76908C1.97011 1.57438 2.28481 1.57436 2.47975 1.76908L7.12477 6.41947L11.7698 1.77445C11.9648 1.57945 12.2799 1.57945 12.4749 1.77445C12.6698 1.96945 12.6699 2.28454 12.4749 2.47953L7.82984 7.12455L7.8401 7.11918L12.4851 11.7642C12.68 11.9592 12.68 12.2743 12.4851 12.4693C12.3852 12.5642 12.2601 12.6142 12.1301 12.6143C12.0002 12.6143 11.8751 12.5692 11.7752 12.4693L7.13014 7.82425L2.48512 12.4693C2.38517 12.5642 2.26006 12.6142 2.13014 12.6143C2.00018 12.6143 1.87514 12.5692 1.77516 12.4693C1.58016 12.2743 1.58016 11.9592 1.77516 11.7642L6.41969 7.11918L1.77516 2.47416C1.58016 2.27916 1.58016 1.96408 1.77516 1.76908Z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="breeze-welcome" id="breezeWelcome">
+      <svg class="breeze-star-hero" viewBox="0 0 36 36" fill="none">
+        <path d="M18 3C18.74 11.64 24.36 17.26 33 18C24.36 18.74 18.74 24.36 18 33C17.26 24.36 11.64 18.74 3 18C11.64 17.26 17.26 11.64 18 3Z" fill="#ff4800"/>
+      </svg>
+      <p class="breeze-welcome-text">I'm your AI Assistant,<br>here to help you get things done</p>
+      <div class="breeze-chips">
+        <button class="breeze-chip" onclick="sendChip('Adjust the tone or length')">
+          Adjust the tone or length
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H6M13 3V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="breeze-chip" onclick="sendChip('Tell me more about this contact')">
+          Tell me more about this contact
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H6M13 3V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="breeze-chip" onclick="sendChip('Suggest a stronger call to action')">
+          Suggest a stronger call to action
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H6M13 3V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="breeze-chip breeze-chip-plain">View more</button>
+      </div>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+  </div>
+
+  <!-- ── DIALOG FOOTER ── -->
+  <div class="dialog-footer">
+    <div class="breeze-fab-wrap" id="breezeFab">
+      <div class="breeze-fab-hint">⌘ G</div>
+      <div class="breeze-fab">
+        <button class="breeze-fab-star" onclick="openChat()" title="Ask Breeze">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1.5C8.33 5.17 10.83 7.67 14.5 8C10.83 8.33 8.33 10.83 8 14.5C7.67 10.83 5.17 8.33 1.5 8C5.17 7.67 7.67 5.17 8 1.5Z" fill="#ff4800"/>
+          </svg>
+        </button>
+        <div class="breeze-fab-actions">
+          <div class="breeze-fab-divider"></div>
+          <button class="breeze-fab-btn" onclick="openChat()" title="Chat">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3h10a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H6.5L4 13.5V11H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/>
+            </svg>
+          </button>
+          <button class="breeze-fab-btn" onclick="openChat()" title="Voice">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="3" y1="7" x2="3" y2="9"/>
+              <line x1="6" y1="5" x2="6" y2="11"/>
+              <line x1="9" y1="3" x2="9" y2="13"/>
+              <line x1="12" y1="6" x2="12" y2="10"/>
+            </svg>
+          </button>
+          <button class="breeze-fab-btn" onclick="enterCursorMode()" title="AI cursor — select a context card">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 2.5l8.5 4.5-3.7 1.3L6.5 12.5 3 2.5Z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Omnibar input bar — visible when chat is open -->
+    <div class="footer-omnibar" id="footerOmnibar">
+      <button class="omnibar-back-btn" onclick="closeChat()" title="Close Breeze">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 13L5 8l5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <input class="omnibar-text-input" id="omnibarInput" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendOmnibar()">
+      <button class="omnibar-add-btn" title="Attach">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <button class="omnibar-send-btn" onclick="sendOmnibar()" title="Send">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H6M13 3V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="footer-spacer" id="footerSpacer"></div>
+    <span class="nav-counter-label" id="navCounter">1 of 1</span>
+    <button class="btn-footer-nav" id="btnBack" onclick="navigate(-1)" disabled>Back</button>
+    <button class="btn-footer-nav" id="btnNext" onclick="navigate(1)">Next</button>
+  </div>
+
+</div><!-- /modal -->
+
+</div><!-- /modal-group -->
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+// Contact lists are sourced from the Home cards that opened this focus mode.
+// 'follow-up-initial' = "Send a personalized follow-up to 3 contacts" (Day 1)
+// 'follow-up'         = "Send a personalized follow-up to 6 contacts" (Day 7)
+const CONTACTS_BY_CARD = {
+  'follow-up-initial': [
+    { name: 'Katie Martinez', role: 'Greenfield Logistics',  initials: 'KM' },
+    { name: 'Brian Torres',   role: 'Torres Corp',           initials: 'BT' },
+    { name: 'Lisa Nguyen',    role: 'Coastal Media Group',   initials: 'LN' },
+  ],
+  'follow-up': [
+    { name: 'Jordan Park',   role: 'Summit Steel Fabricators', initials: 'JP' },
+    { name: 'Rachel Kim',    role: 'Apex Dynamics',            initials: 'RK' },
+    { name: 'Marcus Torres', role: 'Northgate Solutions',      initials: 'MT' },
+    { name: 'Sarah Liu',     role: 'Brightpath Inc',           initials: 'SL' },
+    { name: 'David Chen',    role: 'Pacific Rim Industries',   initials: 'DC' },
+    { name: 'Amy Walsh',     role: 'Veritas Group',            initials: 'AW' },
+  ],
+};
+const _focusParams = new URLSearchParams(location.search);
+const _focusCardId = _focusParams.get('card') || 'follow-up-initial';
+const _focusSrc    = CONTACTS_BY_CARD[_focusCardId] || CONTACTS_BY_CARD['follow-up-initial'];
+const contacts = _focusSrc.map((c, i, arr) => ({ ...c, counter: (i + 1) + ' of ' + arr.length }));
+
+let current = 0;
+let selectedCardKey = null;
+const activeContext = new Set(['contact', 'activity', 'company', 'emails']);
+let _lc = 0;
+let savedEmailHTML = null;
+
+// ── CARD PROMPTS ──────────────────────────────────────────────────────────────
+const CARD_PROMPTS = {
+  contact: [
+    { label: 'Associations',    key: 'contact-associations' },
+    { label: 'Properties',      key: 'contact-properties' },
+    { label: 'Meeting history', key: 'contact-meetings' },
+  ],
+  activity: [
+    { label: 'Summarise activity',    key: 'activity-summary' },
+    { label: 'Create follow-up task', key: 'activity-followup' },
+  ],
+  company: [
+    { label: 'Associations', key: 'company-associations' },
+    { label: 'Properties',   key: 'company-properties' },
+    { label: 'Open deals',   key: 'company-deals' },
+  ],
+  emails: [
+    { label: 'Summarise thread', key: 'email-summary' },
+    { label: 'Key topics',       key: 'email-topics' },
+  ],
+  default: [
+    { label: 'Suggest next steps',  key: 'default-nextsteps' },
+    { label: 'Make email shorter',  key: 'default-shorter' },
+    { label: 'More formal tone',    key: 'default-formal' },
+  ],
+};
+
+// ── PROMPT RESULTS ────────────────────────────────────────────────────────────
+const PROMPT_RESULTS = {
+  'contact-associations': {
+    title: 'Evelyn – Associations', contextKey: 'contact-associations',
+    html: `<div class="chat-assoc-item" onclick="drillAssociation('SalesRabbit')"><span class="chat-assoc-name">SalesRabbit</span><span class="chat-assoc-type">Company ›</span></div>
+           <div class="chat-assoc-item" onclick="drillAssociation('Renewal Q3 2025')"><span class="chat-assoc-name">Renewal Q3 2025</span><span class="chat-assoc-type">Deal ›</span></div>
+           <div class="chat-assoc-item" onclick="drillAssociation('Onboarding support #1082')"><span class="chat-assoc-name">Onboarding support #1082</span><span class="chat-assoc-type">Ticket ›</span></div>
+           <div class="chat-assoc-item" onclick="drillAssociation('Neil Sanchez')"><span class="chat-assoc-name">Neil Sanchez</span><span class="chat-assoc-type">Contact ›</span></div>`,
+  },
+  'contact-properties': {
+    title: 'Evelyn – Properties', contextKey: 'contact-properties',
+    html: `<div class="chat-result-row"><span class="chat-result-row-label">Job title</span><span class="chat-result-row-value">Customer Success Manager</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Email</span><span class="chat-result-row-value">evelyn@salesrabbit.com</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Lifecycle stage</span><span class="chat-result-row-value">Customer</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Last contacted</span><span class="chat-result-row-value">3 days ago</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Lead status</span><span class="chat-result-row-value">In progress</span></div>`,
+  },
+  'contact-meetings': {
+    title: 'Evelyn – Meeting history', contextKey: 'contact-meetings',
+    html: `<div class="chat-assoc-item"><span class="chat-assoc-name">Kick off call</span><span class="chat-assoc-type">5 days ago</span></div>
+           <div class="chat-assoc-item"><span class="chat-assoc-name">Product walkthrough</span><span class="chat-assoc-type">2 weeks ago</span></div>
+           <div class="chat-assoc-item"><span class="chat-assoc-name">Intro call</span><span class="chat-assoc-type">1 month ago</span></div>`,
+  },
+  'company-associations': {
+    title: 'SalesRabbit – Associations', contextKey: 'company-associations',
+    html: `<div class="chat-assoc-item" onclick="drillAssociation('Neil Sanchez')"><span class="chat-assoc-name">Neil Sanchez</span><span class="chat-assoc-type">Contact ›</span></div>
+           <div class="chat-assoc-item" onclick="drillAssociation('Renewal Q3 2025')"><span class="chat-assoc-name">Renewal Q3 2025</span><span class="chat-assoc-type">Deal ›</span></div>
+           <div class="chat-assoc-item" onclick="drillAssociation('Onboarding support #1082')"><span class="chat-assoc-name">Onboarding support #1082</span><span class="chat-assoc-type">Ticket ›</span></div>`,
+  },
+  'company-properties': {
+    title: 'SalesRabbit – Properties', contextKey: 'company-properties',
+    html: `<div class="chat-result-row"><span class="chat-result-row-label">Industry</span><span class="chat-result-row-value">Sales Technology</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Employees</span><span class="chat-result-row-value">200–500</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Annual revenue</span><span class="chat-result-row-value">$40M</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">HQ</span><span class="chat-result-row-value">Lehi, Utah</span></div>`,
+  },
+  'company-deals': {
+    title: 'SalesRabbit – Open deals', contextKey: 'company-deals',
+    html: `<div class="chat-assoc-item" onclick="drillAssociation('Renewal Q3 2025')"><span class="chat-assoc-name">Renewal Q3 2025</span><span class="chat-assoc-type">$24,000 · Negotiation</span></div>
+           <div class="chat-assoc-item"><span class="chat-assoc-name">CS Expansion</span><span class="chat-assoc-type">$8,000 · Proposal</span></div>`,
+  },
+  'email-summary': {
+    title: 'Email thread – Summary', contextKey: 'email-summary',
+    html: `<div style="font-size:12.5px;color:var(--text-secondary);line-height:1.65">Evelyn initiated contact 12 days ago at a conference. After an intro call, she requested a more tactical session with her wider team. She is key to coordinating internal stakeholders and moving the deal forward.</div>`,
+  },
+  'email-topics': {
+    title: 'Email thread – Key topics', contextKey: 'email-topics',
+    html: `<div class="chat-result-row"><span class="chat-result-row-label">Main ask</span><span class="chat-result-row-value">Broader team session</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Pain point</span><span class="chat-result-row-value">CS workflow visibility</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Tone</span><span class="chat-result-row-value">Warm, engaged</span></div>`,
+  },
+  'activity-summary': {
+    title: 'Activity – Summary', contextKey: null,
+    html: `<div style="font-size:12.5px;color:var(--text-secondary);line-height:1.65">3 activities in the last 2 weeks. A follow-up call, a kickoff meeting, and strong interest expressed — Evelyn is actively coordinating internally to move this forward.</div>`,
+  },
+  'activity-followup': {
+    title: 'Follow-up task', contextKey: null,
+    html: `<div class="chat-result-row"><span class="chat-result-row-label">Task</span><span class="chat-result-row-value">Follow up with Evelyn</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Due</span><span class="chat-result-row-value">In 3 days</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Assigned</span><span class="chat-result-row-value">Gabby</span></div>`,
+  },
+  'default-nextsteps': {
+    title: 'Next steps', contextKey: null,
+    html: `<div class="chat-result-row"><span class="chat-result-row-label">1</span><span class="chat-result-row-value">Schedule broader team session</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">2</span><span class="chat-result-row-value">Share agenda ahead of call</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">3</span><span class="chat-result-row-value">Align on renewal timeline</span></div>`,
+  },
+  'default-shorter': {
+    title: 'Shorter draft', contextKey: null,
+    html: `<div style="font-size:12.5px;color:var(--text-secondary);line-height:1.65">Hi Evelyn,<br><br>Quick follow-up — let's find a time this week for a session with your broader team. Let me know what works!</div>`,
+  },
+  'default-formal': {
+    title: 'Formal draft', contextKey: null,
+    html: `<div style="font-size:12.5px;color:var(--text-secondary);line-height:1.65">Dear Evelyn,<br><br>I am writing to follow up on our recent conversations and to propose scheduling a session with your wider team at SalesRabbit. Please let me know your availability at your earliest convenience.</div>`,
+  },
+};
+
+// ── ASSOCIATION DETAILS ───────────────────────────────────────────────────────
+const ASSOC_DETAILS = {
+  'SalesRabbit': {
+    title: 'SalesRabbit', contextKey: 'assoc-salesrabbit',
+    html: `<div class="chat-result-row"><span class="chat-result-row-label">Industry</span><span class="chat-result-row-value">Sales Technology</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Employees</span><span class="chat-result-row-value">200–500</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Revenue</span><span class="chat-result-row-value">$40M ARR</span></div>
+           <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);line-height:1.6">Currently scaling their CS operations. Referencing their growth trajectory in your email shows you understand their priorities.</div>`,
+  },
+  'Renewal Q3 2025': {
+    title: 'Renewal Q3 2025', contextKey: 'assoc-renewal',
+    html: `<div class="chat-result-row"><span class="chat-result-row-label">Amount</span><span class="chat-result-row-value">$24,000</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Stage</span><span class="chat-result-row-value">Negotiation</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Close date</span><span class="chat-result-row-value">Sep 30, 2025</span></div>
+           <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);line-height:1.6">The renewal is in negotiation. Mentioning the upcoming timeline in your email could help accelerate their decision.</div>`,
+  },
+  'Onboarding support #1082': {
+    title: 'Onboarding support #1082', contextKey: 'assoc-ticket',
+    html: `<div class="chat-result-row"><span class="chat-result-row-label">Type</span><span class="chat-result-row-value">Support ticket</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Status</span><span class="chat-result-row-value">Open</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Priority</span><span class="chat-result-row-value">Medium</span></div>
+           <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);line-height:1.6">There's an open support ticket on onboarding. Acknowledging it in your reply shows attentiveness to their current challenges.</div>`,
+  },
+  'Neil Sanchez': {
+    title: 'Neil Sanchez', contextKey: 'assoc-neil',
+    html: `<div class="chat-result-row"><span class="chat-result-row-label">Title</span><span class="chat-result-row-value">Director of Sales</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Company</span><span class="chat-result-row-value">SalesRabbit</span></div>
+           <div class="chat-result-row"><span class="chat-result-row-label">Last activity</span><span class="chat-result-row-value">12 days ago</span></div>
+           <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);line-height:1.6">Neil leads the sales org and is likely a key stakeholder in the buying decision. Evelyn may be looping him in to the next session.</div>`,
+  },
+};
+
+// ── EMAIL DRAFTS ──────────────────────────────────────────────────────────────
+const BASE_EMAIL = `<p>Hi Evelyn,</p>
+<p>I wanted to circle back on your note about bringing the broader team into a more tactical conversation — that sounds like exactly the right next step.</p>
+<p>Based on what you shared about <span data-src="contact activity">scaling onboarding and improving visibility across your CS workflows</span>, I think it would be worth tailoring the next session specifically to those priorities. I can put together a short agenda in advance so everyone comes prepared.</p>
+<p><span data-src="emails">Who would you like involved in that conversation?</span> Happy to work around your team's availability.</p>
+<p>Looking forward to continuing the discussion.</p>
+<p>Best,<br>Gabby</p>
+<p><strong>Growzz | SaaS Tax Strategy &amp; Advisory</strong></p>`;
+
+const EMAIL_DRAFTS = {
+  // contact-properties added
+  'activity,company,contact,contact-properties,emails':
+    `<p>Hi Evelyn,</p>
+<p>I wanted to circle back on your note — as <span data-src="contact-properties contact">Customer Success Manager at SalesRabbit</span>, you're exactly the right person to help shape this next session for your team.</p>
+<p>Based on what you shared about <span data-src="contact activity">scaling onboarding and improving visibility across your CS workflows</span>, I'd love to tailor the agenda specifically around those priorities and have a brief ready before we connect.</p>
+<p><span data-src="emails">Who from your team would you like to include?</span> Happy to work around everyone's schedules.</p>
+<p>Looking forward to it.</p>
+<p>Best,<br>Gabby</p>
+<p><strong>Growzz | SaaS Tax Strategy &amp; Advisory</strong></p>`,
+
+  // company-properties added
+  'activity,company,company-properties,contact,emails':
+    `<p>Hi Evelyn,</p>
+<p>I wanted to circle back — given that <span data-src="company-properties company">SalesRabbit is scaling its CS operations across a 200–500 person team</span>, the kind of onboarding visibility you mentioned is exactly what this session could address.</p>
+<p>Based on your note, <span data-src="contact activity">improving workflow visibility and onboarding consistency</span> are the core priorities. I can tailor the next session around those and share a short agenda in advance.</p>
+<p><span data-src="emails">Who would you like to include from your team?</span> Happy to work around schedules.</p>
+<p>Looking forward to it.</p>
+<p>Best,<br>Gabby</p>
+<p><strong>Growzz | SaaS Tax Strategy &amp; Advisory</strong></p>`,
+
+  // company-deals added
+  'activity,company,company-deals,contact,emails':
+    `<p>Hi Evelyn,</p>
+<p>I wanted to follow up on your note — bringing in the broader team makes a lot of sense, especially given <span data-src="company-deals company">where things stand with the Renewal Q3 conversation</span>.</p>
+<p>Based on what you shared about <span data-src="contact activity">scaling onboarding and improving CS visibility</span>, I'd love to design the next session around those needs with a shared agenda sent in advance.</p>
+<p><span data-src="emails">Who would you like involved?</span> Happy to work around the team's availability.</p>
+<p>Looking forward to continuing the conversation.</p>
+<p>Best,<br>Gabby</p>
+<p><strong>Growzz | SaaS Tax Strategy &amp; Advisory</strong></p>`,
+
+  // assoc-renewal added
+  'activity,assoc-renewal,company,contact,emails':
+    `<p>Hi Evelyn,</p>
+<p>I wanted to follow up on your note — bringing the broader team in now makes a lot of sense, especially with <span data-src="assoc-renewal">the renewal conversation coming up in Q3</span>.</p>
+<p>I'd love to use the next session to address <span data-src="contact activity">the onboarding and CS visibility priorities you mentioned</span>, and make sure we're well aligned before September. A short agenda in advance would help everyone come prepared.</p>
+<p><span data-src="emails">Who from your team would you like to include?</span> Happy to work around schedules.</p>
+<p>Looking forward to it.</p>
+<p>Best,<br>Gabby</p>
+<p><strong>Growzz | SaaS Tax Strategy &amp; Advisory</strong></p>`,
+
+  // assoc-neil added
+  'activity,assoc-neil,company,contact,emails':
+    `<p>Hi Evelyn,</p>
+<p>I wanted to follow up on your note — bringing in the broader team sounds like the right move. <span data-src="assoc-neil">Would Neil be part of that group?</span> Given his role leading the sales org, his perspective would add a lot to the conversation.</p>
+<p>Based on what you've shared about <span data-src="contact activity">scaling onboarding and improving CS workflow visibility</span>, I can tailor the session specifically to those priorities with an agenda sent in advance.</p>
+<p><span data-src="emails">Let me know who else you'd like to include.</span> Happy to work around everyone's schedules.</p>
+<p>Looking forward to it.</p>
+<p>Best,<br>Gabby</p>
+<p><strong>Growzz | SaaS Tax Strategy &amp; Advisory</strong></p>`,
+
+  // assoc-ticket added
+  'activity,assoc-ticket,company,contact,emails':
+    `<p>Hi Evelyn,</p>
+<p>I wanted to follow up on your note — and also wanted to flag that <span data-src="assoc-ticket">I noticed the open onboarding support ticket (#1082)</span>. Happy to address that directly in our next session as part of a broader conversation with your team.</p>
+<p>Based on what you've shared about <span data-src="contact activity">improving CS onboarding and workflow visibility</span>, I think a tailored session with a prepared agenda would be the best use of everyone's time.</p>
+<p><span data-src="emails">Who would you like to include?</span> Happy to work around schedules.</p>
+<p>Best,<br>Gabby</p>
+<p><strong>Growzz | SaaS Tax Strategy &amp; Advisory</strong></p>`,
+
+  // assoc-salesrabbit added
+  'activity,assoc-salesrabbit,company,contact,emails':
+    `<p>Hi Evelyn,</p>
+<p>I wanted to circle back on your note — and I've been thinking about <span data-src="assoc-salesrabbit company">SalesRabbit's trajectory as you scale the CS team</span>. This feels like exactly the right moment to bring in the right stakeholders.</p>
+<p>Based on what you shared about <span data-src="contact activity">improving onboarding consistency and cross-team visibility</span>, I can put together a session and agenda specifically designed around where SalesRabbit is heading.</p>
+<p><span data-src="emails">Who would you like involved?</span> Happy to work around your team's availability.</p>
+<p>Looking forward to it.</p>
+<p>Best,<br>Gabby</p>
+<p><strong>Growzz | SaaS Tax Strategy &amp; Advisory</strong></p>`,
+};
+
+function getEmailHTML() {
+  const key = Array.from(activeContext).sort().join(',');
+  return EMAIL_DRAFTS[key] || BASE_EMAIL;
+}
+
+function renderEmail() {
+  const body = document.getElementById('emailBody');
+  body.innerHTML = getEmailHTML();
+  body.querySelectorAll('[data-src]').forEach(el => el.classList.add('src'));
+  if (selectedCardKey) highlightSource(selectedCardKey);
+}
+
+function highlightSource(k) {
+  const body = document.getElementById('emailBody');
+  body.querySelectorAll('.src-active').forEach(el => el.classList.remove('src-active'));
+  if (!k) return;
+  body.querySelectorAll('[data-src]').forEach(el => {
+    if (el.dataset.src.split(' ').some(s => s === k)) el.classList.add('src-active');
+  });
+}
+
+function clearHighlights() {
+  highlightSource(null);
+  document.querySelectorAll('.card.selected').forEach(c => {
+    c.classList.remove('selected');
+    const cb = c.querySelector('.card-check');
+    if (cb) cb.classList.remove('checked');
+  });
+}
+
+// ── THREAD HELPERS ────────────────────────────────────────────────────────────
+function activeContainer() {
+  return document.getElementById(
+    document.getElementById('chatSidebar').classList.contains('active')
+      ? 'sidebarMessages'
+      : 'chatMessages'
+  );
+}
+
+
+// ── CARD SELECTION ────────────────────────────────────────────────────────────
+function insertContextMarker(cardTitle) {
+  const msgs = document.getElementById('chatMessages');
+  msgs.querySelectorAll('.onboarding-welcome').forEach(m => m.style.display = 'none');
+  msgs.querySelectorAll('.card-focus-block').forEach(m => m.remove());
+  msgs.querySelectorAll('.chat-context-marker').forEach(m => m.remove());
+  const block = document.createElement('div');
+  block.className = 'card-focus-block';
+  block.innerHTML =
+    `<div class="chat-context-marker"><span class="chat-context-marker-label">Asking about ${cardTitle}</span></div>` +
+    `<div class="inline-prompts">${promptsHTML(selectedCardKey || 'default')}</div>`;
+  msgs.appendChild(block);
+  msgs.scrollTop = msgs.scrollHeight;
+  markHasMessages();
+}
+
+function clearCardFocus() {
+  const msgs = document.getElementById('chatMessages');
+  if (!msgs) return;
+  msgs.querySelectorAll('.card-focus-block').forEach(m => m.remove());
+  msgs.querySelectorAll('.onboarding-welcome').forEach(m => m.style.display = '');
+}
+
+function enterCursorMode() {
+  document.body.classList.add('cursor-mode');
+}
+
+function exitCursorMode() {
+  document.body.classList.remove('cursor-mode');
+}
+
+function toggleCursorMode() {
+  document.body.classList.toggle('cursor-mode');
+}
+
+document.addEventListener('click', e => {
+  if (!document.body.classList.contains('cursor-mode')) return;
+  const card = e.target.closest('.context-scroll .card');
+  if (!card) return;
+  if (e.target.closest('.card-resize, .drag-handle, a, input, textarea, select')) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const btn = card.querySelector('.card-check');
+  if (btn) toggleCard(btn);
+}, true);
+
+function toggleCard(btn) {
+  const card = btn.closest('.card');
+  const wasSelected = card.classList.contains('selected');
+
+  document.querySelectorAll('.card.selected').forEach(c => {
+    c.classList.remove('selected');
+    const cb = c.querySelector('.card-check');
+    if (cb) cb.classList.remove('checked');
+  });
+  clearHighlights();
+
+  if (!wasSelected) {
+    card.classList.add('selected');
+    btn.classList.add('checked');
+    selectedCardKey = card.dataset.cardKey || 'default';
+
+    document.getElementById('chatPanelTitle').textContent = card.dataset.cardTitle;
+    document.getElementById('sidebarTitle').textContent   = card.dataset.cardTitle;
+
+    updatePrompts(selectedCardKey);
+    highlightSource(selectedCardKey);
+    openChat();
+    insertContextMarker(card.dataset.cardTitle);
+  } else {
+    selectedCardKey = null;
+    document.getElementById('chatPanelTitle').textContent = 'Ask Breeze';
+    document.getElementById('sidebarTitle').textContent   = 'Ask Breeze';
+    updatePrompts('default');
+    clearCardFocus();
+    closeChat();
+  }
+}
+
+function promptsHTML(type) {
+  const prompts = CARD_PROMPTS[type] || CARD_PROMPTS.default;
+  const arrow = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H6M13 3V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  return prompts.map(p =>
+    `<button class="chat-prompt-pill" onclick="runPrompt('${p.key}',this)"><span>${p.label}</span>${arrow}</button>`
+  ).join('') + `<button class="chat-prompt-pill plain" onclick="runPrompt('view-more',this)">View more</button>`;
+}
+function updatePrompts(type) {
+  const html = promptsHTML(type);
+  document.querySelectorAll('.inline-prompts').forEach(el => { el.innerHTML = html; });
+}
+
+// ── PROMPTS & CHAT ────────────────────────────────────────────────────────────
+function runPrompt(key, btn) {
+  const c = activeContainer();
+  const threadKey = selectedCardKey || 'default';
+
+  const d = document.createElement('div');
+  d.className = 'chat-message';
+  d.innerHTML = `<div class="chat-user-bubble">${btn.textContent.trim()}</div>`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+
+  const lid = 'ld' + (++_lc);
+  const ld = document.createElement('div');
+  ld.className = 'chat-message';
+  ld.id = lid;
+  ld.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+  c.appendChild(ld);
+  c.scrollTop = c.scrollHeight;
+
+  setTimeout(() => {
+    const el = document.getElementById(lid);
+    if (el) el.remove();
+    const r = PROMPT_RESULTS[key];
+    if (r) appendResultTo(c, r);
+  }, 900);
+}
+
+const AI_AVATAR_SVG = '<svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5C8.33 5.17 10.83 7.67 14.5 8C10.83 8.33 8.33 10.83 8 14.5C7.67 10.83 5.17 8.33 1.5 8C5.17 7.67 7.67 5.17 8 1.5Z" fill="#ff4800"/></svg>';
+
+function appendResultTo(c, result) {
+  const cardId = 'rc' + Date.now();
+  const d = document.createElement('div');
+  d.className = 'chat-message';
+  d.innerHTML = `<div class="chat-result-card" id="${cardId}">
+    <div class="chat-result-header">
+      <div class="chat-result-header-left">
+        <span class="chat-result-title">${result.title}</span>
+      </div>
+    </div>
+    <div class="chat-result-body">${result.html}</div>
+  </div>`;
+  c.appendChild(d);
+
+  if (result.contextKey) {
+    const promptId = 'addprompt-' + cardId;
+    const titleEsc = result.title.replace(/'/g,"\\'");
+    const ap = document.createElement('div');
+    ap.className = 'chat-message';
+    ap.id = promptId;
+    ap.innerHTML = `<div class="ai-msg">
+      <div class="ai-msg-header">
+        <div class="ai-msg-avatar">${AI_AVATAR_SVG}</div>
+        <span class="ai-msg-label">AI</span>
+      </div>
+      <div class="ai-msg-body">Want to add <strong>${result.title}</strong> to context?</div>
+      <div class="ai-msg-actions" id="actions-${promptId}">
+        <button class="btn-accept-yes" onclick="confirmAddCardToContext('${cardId}','${titleEsc}','${result.contextKey}','${promptId}')">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Add to context
+        </button>
+        <button class="btn-accept-no" onclick="dismissAddPrompt('${promptId}')">Not now</button>
+      </div>
+    </div>`;
+    c.appendChild(ap);
+  }
+
+  c.scrollTop = c.scrollHeight;
+  markHasMessages();
+}
+
+function _sendText(text) {
+  const key = selectedCardKey || 'default';
+  const c = activeContainer();
+
+  const d = document.createElement('div');
+  d.className = 'chat-message';
+  d.innerHTML = `<div class="chat-user-bubble">${text}</div>`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+
+  const lid = 'ld' + (++_lc);
+  const ld = document.createElement('div');
+  ld.className = 'chat-message';
+  ld.id = lid;
+  ld.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+  c.appendChild(ld);
+  c.scrollTop = c.scrollHeight;
+
+  setTimeout(() => {
+    const el = document.getElementById(lid);
+    if (el) el.remove();
+    const rd = document.createElement('div');
+    rd.className = 'chat-message';
+    rd.innerHTML = `<div class="chat-breeze-reply">Based on your question about <em>${text}</em>, here is some relevant context about Evelyn and SalesRabbit that may help shape your reply…</div>`;
+    c.appendChild(rd);
+    c.scrollTop = c.scrollHeight;
+    markHasMessages();
+  }, 1000);
+}
+
+function sendChat() {
+  const i = document.getElementById('chatInput');
+  const t = i.value.trim();
+  if (!t) return;
+  i.value = '';
+  _sendText(t);
+}
+
+function sendSidebarChat() {
+  const i = document.getElementById('sidebarInput');
+  const t = i.value.trim();
+  if (!t) return;
+  i.value = '';
+  _sendText(t);
+}
+
+// ── ASSOCIATION DRILL-DOWN ────────────────────────────────────────────────────
+function drillAssociation(name) {
+  const detail = ASSOC_DETAILS[name];
+  if (!detail) return;
+  const c = activeContainer();
+  const threadKey = selectedCardKey || 'default';
+
+  const d = document.createElement('div');
+  d.className = 'chat-message';
+  d.innerHTML = `<div class="chat-user-bubble">Tell me more about ${name}</div>`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+
+  const lid = 'ld' + (++_lc);
+  const ld = document.createElement('div');
+  ld.className = 'chat-message';
+  ld.id = lid;
+  ld.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+  c.appendChild(ld);
+  c.scrollTop = c.scrollHeight;
+
+  setTimeout(() => {
+    const el = document.getElementById(lid);
+    if (el) el.remove();
+    appendResultTo(c, detail);
+  }, 800);
+}
+
+// ── ADD TO CONTEXT ────────────────────────────────────────────────────────────
+function confirmAddCardToContext(cardId, title, contextKey, promptId) {
+  const actionsEl = document.getElementById('actions-' + promptId);
+  actionsEl.querySelectorAll('button').forEach(b => b.disabled = true);
+  actionsEl.innerHTML = '<span class="accept-change-done">Added to context.</span>';
+  addCardToContext(cardId, title, contextKey);
+}
+
+function dismissAddPrompt(promptId) {
+  const actionsEl = document.getElementById('actions-' + promptId);
+  actionsEl.querySelectorAll('button').forEach(b => b.disabled = true);
+  actionsEl.innerHTML = '<span class="accept-change-done">Not added.</span>';
+}
+
+function addCardToContext(cardId, title, contextKey) {
+  const bodyHTML = document.getElementById(cardId).querySelector('.chat-result-body').innerHTML;
+
+  const col2 = document.getElementById('contextCol2');
+
+  const newCard = document.createElement('div');
+  newCard.className = 'card';
+  newCard.dataset.cardTitle = title;
+  newCard.dataset.cardKey = contextKey;
+  newCard.innerHTML = `
+    <div class="contact-card-header">
+      <div class="drag-handle">
+        <svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor">
+          <path d="m12,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1ZM18,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm-6,5.99h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm6,0h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Z"/>
+        </svg>
+      </div>
+      <div class="contact-meta">
+        <div>
+          <div class="contact-name">${title}</div>
+        </div>
+      </div>
+      <button class="card-check" onclick="toggleCard(this)" title="Select card">
+        <svg width="13" height="13" viewBox="0 0 32 32" fill="currentColor">
+          <path d="M14.13,21.5c-.29,0-.58-.11-.81-.33l-4.99-4.99c-.45-.45-.45-1.17,0-1.62.45-.45,1.17-.45,1.62,0l4.18,4.18,7.91-7.92c.45-.45,1.17-.45,1.62,0,.45.45.45,1.17,0,1.62l-8.72,8.72c-.22.22-.52.33-.81.33Z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="card-body" style="padding-top:8px">${bodyHTML}</div>
+    <div class="card-resize">
+      <svg viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <line x1="9" y1="3" x2="3" y2="9"/><line x1="9" y1="6" x2="6" y2="9"/>
+      </svg>
+    </div>`;
+
+  newCard.style.cssText = 'opacity:0;transform:translateY(-8px)';
+  col2.insertBefore(newCard, col2.firstChild);
+
+  requestAnimationFrame(() => {
+    newCard.style.transition = 'opacity .25s ease, transform .25s ease';
+    newCard.style.opacity = '1';
+    newCard.style.transform = 'translateY(0)';
+  });
+
+  // Save current email, add context, render provisional state
+  savedEmailHTML = document.getElementById('emailBody').innerHTML;
+  activeContext.add(contextKey);
+
+  document.querySelector('.right-panel').classList.add('ai-thinking');
+
+  const b = document.getElementById('emailBody');
+  b.style.opacity = '0.3';
+  b.style.transition = 'opacity .2s';
+  setTimeout(() => {
+    renderEmail();
+    // Mark new/changed spans (those referencing the new contextKey) as provisional
+    b.querySelectorAll(`[data-src]`).forEach(el => {
+      if (el.dataset.src.split(' ').some(s => s === contextKey)) el.setAttribute('data-new', '');
+    });
+    b.classList.add('provisional');
+    b.style.opacity = '1';
+    b.style.transition = 'opacity .3s ease';
+    showProvisionalBanner();
+  }, 600);
+
+  // Show accept/reject prompt in chat
+  const c = activeContainer();
+  const promptId = 'accept-' + cardId;
+  const p = document.createElement('div');
+  p.className = 'chat-message';
+  p.id = promptId;
+  p.innerHTML = `<div class="ai-msg">
+    <div class="ai-msg-header">
+      <div class="ai-msg-avatar">${AI_AVATAR_SVG}</div>
+      <span class="ai-msg-label">AI</span>
+    </div>
+    <div class="ai-msg-body">I've updated the draft with <strong>${title}</strong>. Keep these changes?</div>
+    <div class="ai-msg-actions" id="actions-${promptId}">
+      <button class="btn-accept-yes" onclick="acceptEmailChange(true, '${promptId}', '${contextKey}')">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Keep changes
+      </button>
+      <button class="btn-accept-no" onclick="acceptEmailChange(false, '${promptId}', '${contextKey}')">Revert</button>
+    </div>
+  </div>`;
+  c.appendChild(p);
+  c.scrollTop = c.scrollHeight;
+}
+
+// ── PROVISIONAL STATE ─────────────────────────────────────────────────────────
+function showProvisionalBanner() {
+  document.getElementById('provisionalBanner')?.remove();
+  const emailBody = document.getElementById('emailBody');
+  const banner = document.createElement('div');
+  banner.id = 'provisionalBanner';
+  banner.className = 'email-provisional-banner';
+  banner.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Draft has pending changes`;
+  emailBody.parentNode.insertBefore(banner, emailBody);
+}
+
+function removeProvisionalState() {
+  document.getElementById('provisionalBanner')?.remove();
+  document.getElementById('emailBody').classList.remove('provisional');
+}
+
+function acceptEmailChange(accept, promptId, contextKey) {
+  const promptEl = document.getElementById(promptId);
+  promptEl.querySelectorAll('button').forEach(b => b.disabled = true);
+  const actionsEl = document.getElementById('actions-' + promptId);
+
+  document.querySelector('.right-panel').classList.remove('ai-thinking');
+
+  if (accept) {
+    document.getElementById('emailBody').querySelectorAll('[data-new]').forEach(el => el.removeAttribute('data-new'));
+    removeProvisionalState();
+    savedEmailHTML = null;
+    actionsEl.innerHTML = '<span class="accept-change-done">Changes accepted.</span>';
+  } else {
+    activeContext.delete(contextKey);
+    if (savedEmailHTML) {
+      const b = document.getElementById('emailBody');
+      b.innerHTML = savedEmailHTML;
+      b.querySelectorAll('[data-src]').forEach(el => el.classList.add('src'));
+      if (selectedCardKey) highlightSource(selectedCardKey);
+    }
+    removeProvisionalState();
+    savedEmailHTML = null;
+    actionsEl.innerHTML = '<span class="accept-change-done">Changes reverted.</span>';
+  }
+}
+
+// ── CHAT OPEN / CLOSE / PIN / UNPIN ──────────────────────────────────────────
+function openChat() {
+  const panel = document.getElementById('chatPanel');
+  panel.classList.add('open');
+  if (document.getElementById('chatMessages').children.length > 0) {
+    panel.classList.add('has-messages');
+  }
+  document.getElementById('breezeFab').style.display = 'none';
+  document.getElementById('footerOmnibar').classList.add('visible');
+  setTimeout(() => document.getElementById('omnibarInput').focus(), 50);
+}
+
+function markHasMessages() {
+  const panel = document.getElementById('chatPanel');
+  if (panel) panel.classList.add('has-messages');
+}
+
+function closeChat() {
+  const panel = document.getElementById('chatPanel');
+  panel.classList.remove('open');
+  panel.classList.remove('has-messages');
+  document.getElementById('breezeFab').style.display = '';
+  document.getElementById('footerOmnibar').classList.remove('visible');
+}
+
+function sendOmnibar() {
+  const i = document.getElementById('omnibarInput');
+  const t = i.value.trim();
+  if (!t) return;
+  i.value = '';
+  _sendText(t);
+}
+
+function sendChip(text) {
+  _sendText(text);
+}
+
+function pinChat() {
+  const msgs = document.getElementById('chatMessages');
+  closeChat();
+  document.getElementById('breezeFab').style.display = 'none';
+  document.getElementById('chatSidebar').classList.add('active');
+  document.getElementById('modalGroup').classList.add('sidebar-pinned');
+  const sid = document.getElementById('sidebarMessages');
+  sid.innerHTML = msgs.innerHTML;
+  sid.scrollTop = sid.scrollHeight;
+  document.getElementById('sidebarTitle').textContent = document.getElementById('chatPanelTitle').textContent;
+  updatePrompts(selectedCardKey || 'default');
+  setTimeout(() => document.getElementById('sidebarInput').focus(), 50);
+}
+
+function unpinChat() {
+  const msgs = document.getElementById('chatMessages');
+  msgs.innerHTML = document.getElementById('sidebarMessages').innerHTML;
+  msgs.scrollTop = msgs.scrollHeight;
+  document.getElementById('chatSidebar').classList.remove('active');
+  document.getElementById('modalGroup').classList.remove('sidebar-pinned');
+  openChat();
+}
+
+function closeSidebar() {
+  const msgs = document.getElementById('chatMessages');
+  msgs.innerHTML = document.getElementById('sidebarMessages').innerHTML;
+  document.getElementById('chatSidebar').classList.remove('active');
+  document.getElementById('modalGroup').classList.remove('sidebar-pinned');
+  document.getElementById('breezeFab').style.display = '';
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function navigate(dir) {
+  current = Math.max(0, Math.min(contacts.length - 1, current + dir));
+  const c = contacts[current];
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('modalTitle',    'Reply to ' + c.name);
+  setText('navCounter',    c.counter);
+  setText('contactNameEl', c.name);
+  setText('contactRoleEl', c.role);
+  setText('recipientName', c.name);
+
+  const fb = document.getElementById('avatarFallback');
+  if (fb) { fb.textContent = c.initials; fb.style.display = 'flex'; }
+  const img = document.querySelector('.avatar');
+  if (img) img.style.display = 'none';
+
+  document.getElementById('btnBack').disabled = (current === 0);
+  document.getElementById('btnNext').disabled = (current === contacts.length - 1);
+
+  closeChat();
+  clearHighlights();
+  selectedCardKey = null;
+  document.getElementById('chatPanelTitle').textContent = 'Ask Breeze';
+  document.getElementById('sidebarTitle').textContent   = 'Ask Breeze';
+}
+
+// ── SEND EMAIL ────────────────────────────────────────────────────────────────
+function sendEmail() {
+  const btn = document.getElementById('sendBtn');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = 'Sent';
+    btn.style.background = '#222';
+    const c = contacts[current];
+    showDealToast(c.role, [c.initials]);
+    setTimeout(() => {
+      const isLast = (current === contacts.length - 1);
+      if (!isLast) navigate(1);
+      renderEmail();
+      btn.textContent = 'Send';
+      btn.disabled = false;
+      btn.style.background = '';
+    }, 1200);
+  }, 800);
+}
+
+// ── DEAL CREATED TOAST ───────────────────────────────────────────────────────
+function showDealToast(name, initials) {
+  let toast = document.getElementById('dealToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'dealToast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    toast.innerHTML = `
+      <div class="dt-top-row">
+        <span class="dt-label">New deal created</span>
+        <button class="dt-close" onclick="closeDealToast()" aria-label="Dismiss">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="dt-body">
+        <div class="dt-card-row">
+          <div class="dt-card-info">
+            <div class="dt-deal-name" id="dtDealName"></div>
+            <div class="dt-meta">
+              <div class="dt-avatars" id="dtAvatars"></div>
+              <span class="dt-amount" id="dtAmount">$42,000</span>
+            </div>
+          </div>
+          <div class="dt-score-wrap">
+            <svg width="50" height="50" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="19" fill="none" stroke="#e5e7eb" stroke-width="3.5"/>
+              <circle id="dtGaugeArc" cx="25" cy="25" r="19" fill="none" stroke="#00a4bd" stroke-width="3.5"
+                stroke-dasharray="0 119.4" stroke-linecap="round"/>
+            </svg>
+            <div class="dt-score-label" id="dtScoreLabel">0</div>
+          </div>
+        </div>
+        <div class="dt-actions">
+          <button class="dt-btn-open" onclick="closeDealToast()">Open deal</button>
+          <button class="dt-btn-deals" onclick="goToDeals()">Go to deals</button>
+        </div>
+      </div>`;
+    document.body.appendChild(toast);
+  }
+  document.getElementById('dtDealName').textContent = name + ' deal';
+  const av = document.getElementById('dtAvatars');
+  const palettes = ['dt-av-lavender','dt-av-teal','dt-av-green'];
+  const list = (initials && initials.length) ? initials : [(name || '?').charAt(0)];
+  av.innerHTML = list.map((s, i) => `<div class="dt-av ${palettes[i % palettes.length]}">${(s||'').charAt(0)}</div>`).join('');
+
+  toast.classList.remove('dismissing');
+  toast.classList.add('visible');
+  clearTimeout(toast._autoDismiss);
+  toast._autoDismiss = setTimeout(() => closeDealToast(), 12000);
+
+  const arc = document.getElementById('dtGaugeArc');
+  const label = document.getElementById('dtScoreLabel');
+  const TARGET = 62, CIRCUM = 119.4, DURATION = 900, DELAY = 300;
+  arc.style.animation = 'none';
+  arc.setAttribute('stroke-dasharray', '0 ' + CIRCUM);
+  label.textContent = '0';
+  setTimeout(() => {
+    arc.style.animation = 'dtGaugeFill ' + DURATION + 'ms cubic-bezier(0.4,0,0.2,1) forwards';
+    const start = performance.now();
+    (function tick(now) {
+      const p = Math.min((now - start) / DURATION, 1);
+      const ease = p < 0.5 ? 2*p*p : -1+(4-2*p)*p;
+      label.textContent = Math.round(ease * TARGET);
+      if (p < 1) requestAnimationFrame(tick);
+    })(start);
+  }, DELAY);
+}
+function closeDealToast() {
+  const t = document.getElementById('dealToast');
+  if (!t) return;
+  clearTimeout(t._autoDismiss);
+  t.classList.remove('visible');
+  t.classList.add('dismissing');
+  setTimeout(() => t.classList.remove('dismissing'), 230);
+}
+function goToDeals() {
+  closeDealToast();
+  try { (window.top || window).location.href = 'Deals.html'; }
+  catch (_) { window.location.href = 'Deals.html'; }
+}
+
+// ── EMAIL ROW ACCORDION ───────────────────────────────────────────────────────
+function toggleEmailRow(row) {
+  const preview = row.nextElementSibling;
+  const wasOpen = row.classList.contains('expanded');
+
+  document.querySelectorAll('.email-row').forEach(r => r.classList.remove('expanded'));
+  document.querySelectorAll('.email-preview').forEach(p => p.classList.remove('open'));
+
+  if (!wasOpen) {
+    row.classList.add('expanded');
+    preview.classList.add('open');
+  }
+}
+
+// ── INSERT MEETING LINK ───────────────────────────────────────────────────────
+function insertMeetingLink() {
+  const body = document.getElementById('emailBody');
+  const p = document.createElement('p');
+  const a = document.createElement('a');
+  a.href = '#';
+  a.textContent = 'Book a 30-min call';
+  a.style.color = '#0070d4';
+  p.appendChild(a);
+  body.appendChild(p);
+  body.scrollTop = body.scrollHeight;
+}
+
+// ── MODAL CLOSE ───────────────────────────────────────────────────────────────
+function closeModal() {
+  if (window.parent !== window) {
+    window.parent.postMessage('closeFocusMode', '*');
+    return;
+  }
+  window.location.href = 'Home.html';
+}
+
+
+// ── ONBOARDING ────────────────────────────────────────────────────────────────
+function showOnboarding() {
+  const c = document.getElementById('chatMessages');
+  c.insertAdjacentHTML('afterbegin', `
+    <div class="chat-message onboarding-welcome">
+      <div class="chat-breeze-reply">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <svg width="28" height="28" viewBox="0 0 20 20" fill="none" style="flex-shrink:0"><path d="M10 2C10.41 6.46 13.54 9.59 18 10C13.54 10.41 10.41 13.54 10 18C9.59 13.54 6.46 10.41 2 10C6.46 9.59 9.59 6.46 10 2Z" fill="#ff4800"/></svg>
+          <span style="font-size:28px;line-height:1.15;font-weight:400;color:var(--text);font-family:'HubSpot Serif','Lyon Display','Lyon Text',Georgia,'Times New Roman',serif">Welcome to Focus Mode</span>
+        </div>
+        <div class="onboarding-msg-text">
+          Focus Mode has two sides working together. The <strong>context panel</strong> surfaces what you need to know. The <strong>email panel</strong> uses that context to write your reply — automatically.
+        </div>
+        <div class="wf-wrap">
+          <div class="wf-pane">
+            <div class="wf-pane-label">Context</div>
+            <div class="wf-mini-card"></div>
+            <div class="wf-mini-card"></div>
+            <div class="wf-mini-card" style="width:60%"></div>
+          </div>
+          <div class="wf-arrow-col">
+            <div>→</div>
+            <div class="wf-arr-label">shapes</div>
+          </div>
+          <div class="wf-pane">
+            <div class="wf-pane-label">Your reply</div>
+            <div class="wf-line w80"></div>
+            <div class="wf-line w60"></div>
+            <div class="wf-line w70"></div>
+            <div class="wf-line w45"></div>
+          </div>
+        </div>
+        <div class="onboarding-msg-hint">
+          Click a context card's check button to dig in and ask questions. New context automatically updates the draft.
+        </div>
+        <div class="inline-prompts">${promptsHTML('default')}</div>
+      </div>
+    </div>`);
+  markHasMessages();
+  openChat();
+}
+
+// ── KEYBOARD HANDLER ─────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.body.classList.contains('cursor-mode')) {
+      exitCursorMode();
+      return;
+    }
+    closeChat();
+    clearHighlights();
+    selectedCardKey = null;
+  }
+});
+
+// ── COLUMN WIDTH SYNC ─────────────────────────────────────────────────────────
+function syncColWidth() {
+  const lp = document.querySelector('.left-panel');
+  if (!lp) return;
+  const w = lp.offsetWidth;
+  const colW = Math.round((w - 48 - 16) / 2); // (panel - 2×padding - gap) / 2 cols
+  document.documentElement.style.setProperty('--col-width', colW + 'px');
+}
+syncColWidth();
+window.addEventListener('resize', syncColWidth);
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+updatePrompts('default');
+(function renderInitialContact() {
+  const c = contacts[current];
+  if (!c) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('modalTitle',    'Reply to ' + c.name);
+  set('navCounter',    c.counter);
+  set('contactNameEl', c.name);
+  set('contactRoleEl', c.role);
+  set('recipientName', c.name);
+  const fb = document.getElementById('avatarFallback');
+  if (fb) { fb.textContent = c.initials; fb.style.display = 'flex'; }
+  const img = document.querySelector('.avatar');
+  if (img) img.style.display = 'none';
+})();
+document.getElementById('btnBack').disabled = (current === 0);
+document.getElementById('btnNext').disabled = (current === contacts.length - 1);
+
+function typeEmailIn(duration) {
+  const body = document.getElementById('emailBody');
+  body.innerHTML = getEmailHTML();
+  body.querySelectorAll('[data-src]').forEach(el => el.classList.add('src'));
+
+  const textNodes = [];
+  const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.length) {
+      textNodes.push({node, text: node.nodeValue});
+      node.nodeValue = '';
+    }
+  }
+  const totalChars = textNodes.reduce((s, t) => s + t.text.length, 0) || 1;
+  const start = performance.now();
+
+  function tick() {
+    const elapsed = performance.now() - start;
+    const target = Math.min(totalChars, Math.floor((elapsed / duration) * totalChars));
+    let shown = 0;
+    for (const {node, text} of textNodes) {
+      if (shown + text.length <= target) {
+        node.nodeValue = text;
+        shown += text.length;
+      } else {
+        node.nodeValue = text.substring(0, target - shown);
+        break;
+      }
+    }
+    if (target < totalChars) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function revealCardsSequentially(duration) {
+  const cards = document.querySelectorAll('.context-scroll .card');
+  cards.forEach(c => {
+    c.style.opacity = '0';
+    c.style.transform = 'translateY(10px)';
+  });
+  const step = cards.length > 1 ? (duration * 0.7) / (cards.length - 1) : 0;
+  cards.forEach((c, i) => {
+    setTimeout(() => {
+      c.style.transition = 'opacity .3s ease, transform .3s ease';
+      c.style.opacity = '1';
+      c.style.transform = 'translateY(0)';
+    }, i * step);
+  });
+}
+
+function runInitialLoad() {
+  const rightPanel = document.querySelector('.right-panel');
+  rightPanel.classList.add('ai-thinking');
+  const LOAD_MS = 800;
+  typeEmailIn(LOAD_MS);
+  revealCardsSequentially(LOAD_MS);
+  setTimeout(() => rightPanel.classList.remove('ai-thinking'), LOAD_MS + 200);
+}
+
+runInitialLoad();
+setTimeout(showOnboarding, 1600);
+</script>
+<script src="modality-toggle.js"></script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prototypes — Modernize the Core Experience</title>
+  <link rel="stylesheet" href="../assets/style.css"/>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="../index.html">
+    Modernize the Core <span>Experience</span>
+    <small>Workstream 2</small>
+  </a>
+  <ul class="nav-links">
+    <li><a href="../storyboard/index.html">Storyboard</a></li>
+    <li><a href="index.html" class="active">Prototypes</a></li>
+    <li><a href="../architecture/index.html">Architecture</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-bg"></div>
+  <div class="page-header-grid"></div>
+  <div class="page-header-inner">
+    <a class="page-back" href="../index.html">← Back to Overview</a>
+    <div class="section-label" id="proto-label">02 — Prototypes</div>
+    <h1 class="page-title" id="proto-title"><em>Interactive</em> Builds</h1>
+    <p class="page-desc" id="proto-desc">From lo-fi wireframes to high-fidelity interactions — the evolution of our product through iterative design and real user feedback.</p>
+  </div>
+</div>
+
+<section style="background:var(--navy); padding-top:64px;">
+  <div class="proto-grid" id="proto-grid">
+    <!-- injected by JS -->
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Modernize the Core <span>Experience</span></div>
+  <p id="footer-copy">Workstream 2 · 2026</p>
+</footer>
+
+<script src="../assets/content.js"></script>
+<script>
+  const proto = SITE.prototypes;
+  document.title = 'Prototypes — ' + SITE.name;
+  document.getElementById('proto-label').textContent = proto.label;
+  document.getElementById('proto-title').innerHTML = '<em>Interactive</em> Builds';
+  document.getElementById('proto-desc').textContent = proto.subtitle;
+  document.getElementById('footer-copy').textContent = SITE.workstream + ' · ' + SITE.year;
+
+  const statusLabel = { live: '● Live', review: '◐ In Review', draft: '○ Draft' };
+  const statusClass = { live: 'status-live', review: 'status-review', draft: 'status-draft' };
+  const thumbClass  = ['proto-thumb-1', 'proto-thumb-2', 'proto-thumb-3'];
+  const accentColor = ['rgba(255,122,89,0.4)', 'rgba(245,194,107,0.4)', 'rgba(0,189,165,0.4)'];
+
+  const grid = document.getElementById('proto-grid');
+
+  proto.items.forEach((item, i) => {
+    const tc = thumbClass[i % 3];
+    const ac = accentColor[i % 3];
+    grid.insertAdjacentHTML('beforeend', `
+      <div class="proto-card reveal" style="transition-delay:${i * 0.08}s">
+        <div class="proto-thumb ${tc}">
+          <div class="proto-mock">
+            <div class="proto-mock-bar">
+              <div class="proto-mock-dot" style="background:#FF5F57"></div>
+              <div class="proto-mock-dot" style="background:#FFBD2E"></div>
+              <div class="proto-mock-dot" style="background:#28CA41"></div>
+            </div>
+            <div class="proto-mock-body">
+              <div class="proto-mock-line" style="width:65%;background:${ac}"></div>
+              <div class="proto-mock-line" style="width:100%"></div>
+              <div class="proto-mock-line" style="width:80%"></div>
+            </div>
+          </div>
+        </div>
+        <div class="proto-body">
+          <div class="proto-status ${statusClass[item.status]}">${statusLabel[item.status]}</div>
+          <h4>${item.title}</h4>
+          <p>${item.desc}</p>
+        </div>
+        <div class="proto-footer">
+          <span class="proto-meta">${item.updated}</span>
+          ${item.url && item.url !== '#'
+            ? `<a href="${item.url}" target="_blank" rel="noopener" class="proto-link">View →</a>`
+            : `<span class="proto-link" style="opacity:.3;cursor:default">Coming soon</span>`
+          }
+        </div>
+      </div>
+    `);
+  });
+
+  // Reveal
+  const obs = new IntersectionObserver(e => e.forEach(x => { if(x.isIntersecting) x.target.classList.add('visible'); }), {threshold:.1});
+  document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+</script>
+</body>
+</html>
