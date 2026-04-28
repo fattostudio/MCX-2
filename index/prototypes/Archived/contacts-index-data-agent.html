@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contacts — HubSpot MCX (Data Agent)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@300;400;500;600&family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --nav-bg:#1a1a1a;
+  --surface:#fff;
+  --bg:#f5f5f5;
+  --border:#e0e0e0;
+  --border-subtle:#ccc;
+  --text:#141414;
+  --text-secondary:#666;
+  --text-muted:#8a8a8a;
+  --radius-sm:8px;
+  --radius-lg:16px;
+  --radius-full:9999px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);
+  --link:#0091ae;
+}
+
+html,body{
+  font-family:'Lexend Deca',sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  color:var(--text);
+  background:#fff;
+  -webkit-font-smoothing:antialiased;
+  min-width:1200px;
+  height:100%; overflow:hidden;
+}
+
+/* ─── TOP NAV ─── */
+.topnav{
+  width:100%; height:44px;
+  background:#333;
+  display:flex; align-items:center;
+  padding:0 12px;
+  position:sticky; top:0; z-index:200;
+}
+.topnav-logo{
+  width:32px; height:32px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  margin-right:16px;
+}
+.topnav-search{
+  flex:1; max-width:480px; height:32px;
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:var(--radius-full);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 12px;
+  color:rgba(255,255,255,.55);
+  font-size:14px; font-family:inherit;
+  gap:8px; cursor:text;
+}
+.topnav-right{
+  margin-left:auto;
+  display:flex; align-items:center; gap:8px;
+}
+.tn-icon{
+  width:32px; height:32px; border-radius:3px;
+  display:flex; align-items:center; justify-content:center;
+  color:rgba(255,255,255,.65); cursor:pointer;
+}
+.tn-icon:hover{background:rgba(255,255,255,.1);}
+.tn-divider{width:1px; height:24px; background:rgba(255,255,255,.2); margin:0 4px;}
+.tn-assistant{
+  height:32px; padding:0 12px; border-radius:3px;
+  display:flex; align-items:center; gap:6px;
+  font-size:14px; font-family:inherit;
+  background:transparent; color:#fff;
+  cursor:pointer; border:none; white-space:nowrap;
+}
+.tn-assistant:hover{background:rgba(255,255,255,.1);}
+.tn-account{
+  display:flex; align-items:center; gap:8px;
+  color:#fff; font-size:14px; cursor:pointer;
+  padding:4px 8px; border-radius:3px;
+}
+.tn-account:hover{background:rgba(255,255,255,.1);}
+
+/* ─── LAYOUT ─── */
+.app-body{display:flex; height:calc(100vh - 44px); overflow:hidden;}
+
+/* ─── ICON SIDENAV ─── */
+.sidenav{
+  width:48px; flex-shrink:0;
+  background:#1a1a1a;
+  padding:12px 8px;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  position:sticky; top:44px; height:calc(100vh - 44px);
+  overflow:hidden;
+}
+.nav-icon{
+  width:32px; height:32px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:var(--radius-sm);
+  color:rgba(255,255,255,.5);
+  cursor:pointer; transition:background .12s;
+  flex-shrink:0;
+}
+.nav-icon:hover{background:rgba(255,255,255,.1); color:rgba(255,255,255,.9);}
+.nav-icon.active{background:rgba(255,255,255,.15); color:#fff;}
+.nav-divider{width:24px; height:1px; background:rgba(255,255,255,.12); margin:4px 0;}
+
+/* ─── MAIN AREA ─── */
+.main-area{
+  flex:1; display:flex; min-width:0;
+  background:#F0F0F0;
+  padding:16px;
+  gap:16px;
+  align-items:stretch;
+}
+
+.white-surface{
+  flex:1; display:flex; min-width:0;
+  flex-direction:column;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 1px 5px 0 rgba(44,61,79,.12);
+  overflow:hidden;
+}
+
+/* ─── CONTACTS PAGE STRUCTURE ─── */
+.idx-page{
+  display:flex; flex-direction:column;
+  height:100%;
+  overflow:hidden;
+}
+
+/* Page header */
+.idx-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 24px 0;
+  flex-shrink:0;
+}
+.idx-title-group{
+  display:flex; align-items:center; gap:6px;
+}
+.idx-title{
+  font-size:20px; font-weight:500; color:var(--text); line-height:28px;
+}
+.idx-title-chevron{
+  color:var(--text-muted); cursor:pointer;
+  display:flex; align-items:center;
+}
+.idx-header-actions{
+  display:flex; align-items:center; gap:8px;
+}
+.idx-kebab{
+  width:32px; height:32px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; background:#fff; color:var(--text);
+}
+.idx-kebab:hover{background:#f5f5f5;}
+.btn-split{
+  display:inline-flex; align-items:center; height:32px;
+  border-radius:var(--radius-sm); overflow:hidden;
+}
+.btn-split-main{
+  height:32px; padding:0 14px;
+  background:var(--text); color:#fff;
+  border:none;
+  border-radius:var(--radius-sm) 0 0 var(--radius-sm);
+  font-size:14px; font-family:inherit; cursor:pointer;
+  white-space:nowrap;
+}
+.btn-split-main:hover{background:#333;}
+.btn-split-sep{width:1px; height:18px; background:rgba(255,255,255,.3); flex-shrink:0; align-self:center;}
+.btn-split-menu{
+  height:32px; width:30px;
+  background:var(--text); color:#fff;
+  border:none;
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+}
+.btn-split-menu:hover{background:#333;}
+
+/* ─── TABS + TOOLBAR ─── */
+.idx-toolbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 24px 0;
+  flex-shrink:0;
+}
+.idx-tabs{
+  display:flex; align-items:center; gap:2px;
+}
+.idx-tab{
+  height:32px; padding:0 12px;
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:13px; color:var(--text-secondary);
+  border-radius:var(--radius-full);
+  cursor:pointer; border:none; background:transparent;
+  font-family:inherit; white-space:nowrap;
+  transition:background .12s;
+}
+.idx-tab:hover{background:#f0f0f0; color:var(--text);}
+.idx-tab.active{
+  background:#f0f0f0; color:var(--text); font-weight:500;
+}
+.idx-tab-icon{
+  width:14px; height:14px; flex-shrink:0; color:var(--text-muted);
+}
+.idx-tab-add{
+  width:28px; height:28px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:var(--radius-full);
+  color:var(--text-muted); cursor:pointer;
+  border:none; background:transparent; font-size:16px; font-family:inherit;
+  margin-left:4px;
+}
+.idx-tab-add:hover{background:#f0f0f0; color:var(--text);}
+
+/* Agent-generated view tab */
+.idx-tab-agent{
+  border:1px solid #d4caff;
+  background:#faf8ff;
+  color:#5b3fc8;
+  padding:0 10px 0 8px;
+  gap:5px;
+}
+.idx-tab-agent:hover{background:#ede9fe; color:#4a31b0;}
+.idx-tab-agent.active{background:#ede9fe; color:#4a31b0; font-weight:500;}
+.idx-tab-agent-icon{
+  width:13px; height:13px; flex-shrink:0;
+}
+.idx-tab-agent-count{
+  height:16px; min-width:16px; padding:0 5px;
+  background:#5b3fc8; color:#fff;
+  border-radius:var(--radius-full);
+  font-size:10px; font-weight:600; line-height:16px;
+  text-align:center;
+}
+
+.idx-toolbar-right{
+  display:flex; align-items:center; gap:2px;
+}
+.idx-icon-btn{
+  width:32px; height:32px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:var(--radius-sm);
+  color:var(--text-muted); cursor:pointer;
+  border:none; background:transparent;
+}
+.idx-icon-btn:hover{background:#f0f0f0; color:var(--text);}
+.idx-toolbar-sep{width:1px; height:20px; background:var(--border); margin:0 4px;}
+.idx-view-toggle{
+  display:flex; align-items:center;
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  overflow:hidden; height:28px;
+}
+.idx-view-btn{
+  width:30px; height:28px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--text-muted);
+  border:none; background:#fff;
+}
+.idx-view-btn:hover{background:#f5f5f5; color:var(--text);}
+.idx-view-btn.active{background:#f0f0f0; color:var(--text);}
+
+/* ─── DIVIDER ─── */
+.idx-divider{
+  height:1px; background:var(--border);
+  margin:12px 0 0;
+  flex-shrink:0;
+}
+
+/* ─── TABLE ─── */
+.idx-table-wrap{
+  flex:1; overflow-y:auto; overflow-x:auto;
+  position:relative;
+}
+.idx-table{
+  width:100%; border-collapse:collapse;
+  min-width:2100px;
+}
+.idx-table thead{
+  position:sticky; top:0; z-index:10;
+  background:#F0F0F0;
+}
+.idx-th{
+  padding:4px 12px 4px 24px;
+  height:44px;
+  text-align:left;
+  font-size:14px; font-weight:600; color:#33475b;
+  border-bottom:1px solid #dfe3eb;
+  border-right:1px solid #dfe3eb;
+  white-space:nowrap;
+  user-select:none;
+  background:#F0F0F0;
+}
+.idx-th:first-child{width:48px; padding:4px 8px 4px 24px; text-align:left; border-right:1px solid #dfe3eb;}
+.idx-th:last-child{border-right:none;}
+.idx-th.co-primary{width:300px;}
+.idx-th.industry{width:180px;}
+.idx-th.lifecycle{width:200px;}
+.idx-th.activity{width:260px;}
+.idx-th.co-contacts{width:140px;}
+.idx-th.location{width:200px;}
+.idx-th.employees{width:160px;}
+.idx-th.created{width:180px;}
+
+.idx-co-name-primary{
+  font-size:13px; font-weight:500; color:var(--text);
+  cursor:pointer; white-space:nowrap;
+}
+.idx-co-name-primary:hover{text-decoration:underline;}
+
+.idx-tr{
+  height:44px;
+  border-bottom:1px solid #f5f5f5;
+  transition:background .1s;
+}
+.idx-tr:hover{background:#fafafa;}
+.idx-tr:last-child{border-bottom:none;}
+
+.idx-td{
+  padding:0 12px;
+  vertical-align:middle;
+  font-size:13px; color:var(--text);
+}
+.idx-td:first-child{width:48px; padding:0 8px 0 24px; text-align:left;}
+.idx-td.muted{color:var(--text-secondary);}
+
+/* Checkbox */
+.idx-cb{
+  width:16px; height:16px;
+  border-radius:3px;
+  border:1.5px solid #ccc;
+  cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background:#fff;
+}
+
+/* Person cell */
+.idx-person{
+  display:flex; align-items:center; gap:10px;
+}
+.idx-av{
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:500; color:#141414;
+}
+.idx-av img{width:28px; height:28px; border-radius:50%; object-fit:cover;}
+.av-blue{background:#dce9ff;}
+.av-purple{background:#efeefd;}
+.av-teal{background:#d8f5f5;}
+.av-green{background:#daefe1;}
+.av-orange{background:#fcece6;}
+.av-yellow{background:#fcf6e6;}
+.av-pink{background:#fcebf2;}
+.av-gray{background:#ebebeb;}
+
+.idx-name{
+  color:var(--text); font-size:13px; font-weight:400;
+  text-decoration:none; cursor:pointer;
+  white-space:nowrap;
+}
+.idx-name:hover{text-decoration:underline;}
+
+/* Lifecycle stage badge */
+.idx-badge{
+  display:inline-flex; align-items:center; gap:5px;
+  height:22px; padding:0 9px;
+  border-radius:var(--radius-full);
+  font-size:12px; font-weight:400;
+  border:1px solid;
+  white-space:nowrap;
+}
+.badge-blue{background:#e8f4fd; border-color:#a8d4ef; color:#0f5a8a;}
+.badge-green{background:#e5f5e8; border-color:#a0d4a8; color:#1a7a2e;}
+.badge-purple{background:#f0eefd; border-color:#bdb4ef; color:#5a4bbf;}
+.badge-orange{background:#fef0e6; border-color:#f5c49a; color:#a05a18;}
+
+/* Buying role */
+.idx-role{
+  font-size:13px; font-weight:500; color:var(--text);
+  white-space:nowrap;
+}
+
+/* Company cell */
+.idx-company{
+  display:flex; align-items:center; gap:8px;
+}
+.idx-co-logo{
+  width:20px; height:20px; border-radius:4px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:600; color:#fff;
+}
+.co-g{background:#4285F4;}
+.co-v{background:#c0392b;}
+.co-n{background:#2ecc71;}
+.co-s{background:#9b59b6;}
+.co-p{background:#3498db;}
+.co-h{background:#1abc9c;}
+.co-su{background:#e67e22;}
+.co-b{background:#2c3e50;}
+.co-br{background:#6c5ce7;}
+.co-cs{background:#fd79a8;}
+.co-ss{background:#00b894;}
+.co-sg{background:#e17055;}
+.co-mn{background:#0984e3;}
+.co-ac{background:#636e72;}
+
+.idx-co-name{font-size:13px; color:var(--text); white-space:nowrap;}
+
+/* Activity cell */
+.idx-activity{
+  display:flex; align-items:center; gap:7px;
+  font-size:13px; color:var(--text-secondary);
+  white-space:nowrap;
+}
+.idx-activity-icon{flex-shrink:0; color:var(--text-muted);}
+
+/* ─── FOOTER ─── */
+.idx-footer{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px;
+  height:40px;
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+.idx-footer-count{
+  font-size:13px; color:var(--text-secondary);
+}
+.idx-footer-actions{
+  display:flex; align-items:center; gap:8px;
+}
+.btn-ghost{
+  height:28px; padding:0 12px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm);
+  background:#fff; color:var(--text);
+  font-size:13px; font-family:inherit;
+  display:inline-flex; align-items:center; gap:6px;
+  cursor:pointer;
+}
+.btn-ghost:hover{background:#f5f5f5;}
+
+/* ─── SMART PROPERTY COLUMN (DATA AGENT) ─── */
+.col-smart{
+  display:none;
+  width:280px;
+}
+.col-smart.visible{display:table-cell;}
+
+.idx-th.smart{
+  width:280px;
+  background:#f5f3ff;
+  color:#5b3fc8;
+  border-right:1px solid #d4caff;
+  border-bottom:1px solid #d4caff;
+  position:relative;
+}
+.idx-th.smart .th-inner{
+  display:flex; align-items:center; gap:8px;
+}
+.th-agent-badge{
+  display:inline-flex; align-items:center; gap:4px;
+  height:18px; padding:0 7px;
+  background:#ede9fe; border:1px solid #c4b5fd;
+  border-radius:var(--radius-full);
+  font-size:11px; font-weight:500; color:#5b3fc8;
+  white-space:nowrap;
+}
+
+.idx-td.smart{
+  background:#fdfcff;
+  border-right:1px solid #ede9fe;
+  font-size:13px; color:#33475b;
+  vertical-align:middle;
+  padding:0 16px;
+}
+.idx-tr:hover .idx-td.smart{background:#f5f3ff;}
+
+.smart-cell-content{
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity .35s ease, transform .35s ease;
+}
+.smart-cell-content.shown{
+  opacity:1; transform:translateY(0);
+}
+
+/* Generating pulse on the header while populating */
+@keyframes agent-pulse{
+  0%,100%{opacity:1}
+  50%{opacity:.5}
+}
+.idx-th.smart.generating .th-agent-badge{
+  animation:agent-pulse .9s ease-in-out infinite;
+}
+
+/* Enrich offer float wrapper */
+#enrich-offer-wrapper{
+  position:absolute; z-index:50;
+  pointer-events:none;
+}
+#enrich-offer-wrapper .enrich-offer{pointer-events:all;}
+
+/* Enrich offer card */
+.enrich-offer{
+  background:#fff;
+  border:1px solid #c4b5fd;
+  border-radius:10px;
+  padding:14px 16px;
+  display:flex; flex-direction:column; gap:12px;
+  box-shadow:0 2px 12px rgba(91,63,200,.1);
+  opacity:0; transform:translateY(6px);
+  transition:opacity .35s ease, transform .35s ease;
+  width:100%;
+}
+.enrich-offer.shown{opacity:1; transform:translateY(0);}
+.enrich-offer-top{
+  display:flex; align-items:flex-start; gap:10px;
+}
+.enrich-offer-icon{
+  width:28px; height:28px; border-radius:6px;
+  background:#ede9fe;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.enrich-offer-body{flex:1; min-width:0;}
+.enrich-offer-title{
+  font-size:13px; font-weight:500; color:#141414;
+  line-height:18px; margin-bottom:3px;
+}
+.enrich-offer-sub{
+  font-size:12px; color:var(--text-muted); line-height:17px;
+}
+.enrich-offer-credit{
+  display:inline-flex; align-items:center; gap:4px;
+  height:20px; padding:0 8px;
+  background:#ede9fe; border:1px solid #c4b5fd;
+  border-radius:var(--radius-full);
+  font-size:11px; font-weight:500; color:#5b3fc8;
+  white-space:nowrap; margin-top:6px;
+}
+.enrich-offer-actions{
+  display:flex; align-items:center; gap:8px;
+}
+.btn-enrich{
+  height:28px; padding:0 14px;
+  background:#141414; color:#fff;
+  border:none; border-radius:var(--radius-full);
+  font-size:12px; font-weight:400; font-family:inherit;
+  cursor:pointer; white-space:nowrap;
+  display:inline-flex; align-items:center;
+}
+.btn-enrich:hover{background:#333;}
+.btn-enrich-ghost{
+  height:28px; padding:0 10px;
+  background:transparent; color:var(--text-muted);
+  border:none; font-size:12px; font-family:inherit;
+  cursor:pointer; white-space:nowrap;
+}
+.btn-enrich-ghost:hover{color:var(--text);}
+
+/* ─── PROSPECTING VIEW ─── */
+.pro-th{
+  padding:4px 16px;
+  height:44px;
+  text-align:left;
+  font-size:14px; font-weight:600; color:#33475b;
+  border-bottom:1px solid #dfe3eb;
+  border-right:1px solid #dfe3eb;
+  white-space:nowrap;
+  background:#F0F0F0;
+}
+.pro-th:first-child{width:48px; padding:4px 8px 4px 24px; border-right:1px solid #dfe3eb;}
+.pro-th.primary{padding-left:16px; font-size:14px; font-weight:600;}
+.pro-th:last-child{border-right:none;}
+
+.pro-td{
+  padding:0 16px;
+  vertical-align:middle;
+  font-size:13px; color:var(--text);
+}
+.pro-td:first-child{width:48px; padding:0 8px 0 24px;}
+.pro-td.primary{padding-left:16px;}
+.pro-td.muted{color:var(--text-secondary);}
+.pro-co-name{font-size:13px; font-weight:500; color:var(--text); cursor:pointer; white-space:nowrap;}
+.pro-co-name:hover{text-decoration:underline;}
+
+.pro-signal{
+  display:flex; align-items:flex-start; gap:6px;
+  font-size:12px; color:var(--text-secondary);
+  line-height:1.4;
+}
+.pro-signal-dot{
+  width:6px; height:6px; border-radius:50%;
+  background:#5b3fc8; flex-shrink:0; margin-top:4px;
+}
+
+.pro-fit{
+  display:inline-flex; align-items:center; gap:5px;
+  height:22px; padding:0 9px;
+  border-radius:var(--radius-full);
+  font-size:12px; font-weight:400; border:1px solid;
+  white-space:nowrap;
+}
+.fit-high{background:#e5f5e8; border-color:#a0d4a8; color:#1a7a2e;}
+.fit-med{background:#e8f4fd; border-color:#a8d4ef; color:#0f5a8a;}
+.fit-low{background:#f5f5f5; border-color:#ddd; color:#666;}
+
+.btn-add-crm{
+  height:26px; padding:0 12px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-full);
+  background:#fff; color:var(--text);
+  font-size:12px; font-family:inherit;
+  cursor:pointer; white-space:nowrap;
+  display:inline-flex; align-items:center; gap:5px;
+}
+.btn-add-crm:hover{background:#f5f5f5; border-color:#bbb;}
+
+/* View containers */
+.idx-view{flex:1; display:flex; flex-direction:column; overflow:hidden;}
+.idx-view[hidden]{display:none;}
+
+/* Column entrance */
+@keyframes col-enter{
+  from{opacity:0; transform:translateX(-8px);}
+  to{opacity:1; transform:translateX(0);}
+}
+.col-smart.visible{
+  animation:col-enter .3s ease forwards;
+}
+</style>
+</head>
+<body>
+
+<!-- ───── TOP NAV ───── -->
+<nav class="topnav">
+  <div class="topnav-logo">
+    <svg width="23" height="24" viewBox="0 0 23 24" fill="none">
+      <path d="M17.6742 7.89892V5.0417C18.4231 4.68945 18.9478 3.93496 18.9478 3.05922V2.99322C18.9478 1.78473 17.9549 0.796244 16.7415 0.796244H16.6752C15.4615 0.796244 14.4686 1.78498 14.4686 2.99322V3.05922C14.4686 3.93496 14.9936 4.68945 15.7425 5.0417V7.89892C14.6273 8.07042 13.6084 8.52841 12.7676 9.20241L4.88923 3.09972C4.94095 2.90097 4.97735 2.69622 4.9776 2.48148C4.97961 1.11274 3.86664 0.00175205 2.49207 2.06965e-06C1.11749 -0.00174791 0.00175953 1.10649 2.07848e-06 2.47523C-0.00175537 3.84396 1.11121 4.95495 2.48579 4.9567C2.93369 4.9572 3.34845 4.83045 3.71174 4.6247L11.4618 10.6279C10.8028 11.6186 10.4167 12.8051 10.4167 14.0826C10.4167 15.4201 10.841 16.6571 11.558 17.6746L9.20101 20.0215C9.01472 19.9658 8.82114 19.927 8.61653 19.927C7.48699 19.927 6.57136 20.8388 6.57136 21.9635C6.57136 23.0883 7.48699 24 8.61653 24C9.74607 24 10.6617 23.0883 10.6617 21.9635C10.6617 21.7598 10.6225 21.5673 10.5668 21.3818L12.8982 19.0603C13.9564 19.8648 15.2743 20.3478 16.7083 20.3478C20.1831 20.3478 23 17.5428 23 14.0829C23 10.9506 20.6892 8.36266 17.6742 7.89892ZM16.7086 17.2946C14.927 17.2946 13.4827 15.8566 13.4827 14.0826C13.4827 12.3086 14.927 10.8706 16.7086 10.8706C18.4901 10.8706 19.9343 12.3086 19.9343 14.0826C19.9343 15.8566 18.4899 17.2946 16.7086 17.2946Z" fill="#FF4800"/>
+    </svg>
+  </div>
+  <div class="topnav-search">
+    <span>Search HubSpot</span>
+    <svg width="12" height="12" viewBox="0 0 12.25 12.25" fill="none"><path d="M11.8037 12.25C11.69 12.25 11.5763 12.2063 11.4888 12.1188L8.39125 9.02125C7.48125 9.73437 6.33937 10.185 5.0925 10.185C2.28375 10.185 0 7.90125 0 5.0925C0 2.28375 2.27938 0 5.08813 0C7.89688 0 10.1806 2.28375 10.1806 5.0925C10.1806 6.33938 9.73 7.48125 8.98625 8.36937L12.1144 11.4931C12.2894 11.6681 12.2894 11.9481 12.1144 12.1188C12.0269 12.2063 11.9131 12.25 11.7994 12.25H11.8037ZM5.08813 0.888125C2.76937 0.888125 0.88375 2.77375 0.88375 5.0925C0.88375 7.41125 2.76937 9.29688 5.08813 9.29688C7.40688 9.29688 9.2925 7.41125 9.2925 5.0925C9.2925 2.77375 7.40688 0.888125 5.08813 0.888125Z" fill="rgba(255,255,255,0.5)"/></svg>
+  </div>
+  <div class="topnav-right">
+    <div class="tn-icon">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5" r="3.2" stroke="rgba(255,255,255,.65)" stroke-width="1.1" fill="none"/><path d="M1 13c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="rgba(255,255,255,.65)" stroke-width="1.1" fill="none" stroke-linecap="round"/></svg>
+    </div>
+    <div class="tn-icon">
+      <svg width="14" height="14" viewBox="0 0 12.3 14.155" fill="none"><path d="M6.13 1C7.84 1 9.24 2.4 9.24 4.11V8.73c0 .285.125.56.34.75l.93.815H1.76L2.7 9.47c.215-.19.34-.465.34-.75V4.105C3.04 2.395 4.43 1 6.14 1M6.14 0C3.87 0 2.03 1.835 2.03 4.105V8.72L.16 10.375C-.05 10.585-.056 10.925.16 11.135c.095.095.22.15.354.16H11.79c.295-.015.525-.27.51-.565-.005-.135-.065-.26-.16-.355H12.12L10.25 8.725V4.105C10.25 1.84 8.41 0 6.14 0H6.14ZM8.28 12.44c.035-.275-.155-.525-.43-.56-.275-.035-.525.155-.565.43 0 .035-.125.85-1.08.85-1.03 0-1.18-.735-1.2-.885-.03-.27-.285-.47-.55-.44-.275.03-.475.275-.445.55.065.615.61 1.77 2.195 1.77 1.46 0 1.995-1.125 2.075-1.715H8.28Z" fill="rgba(255,255,255,.65)"/></svg>
+    </div>
+    <div class="tn-divider"></div>
+    <button class="tn-assistant">
+      <svg width="14" height="14" viewBox="0 0 15.47 16" fill="none"><path d="M15 7.514C11.296 7.514 8.203 4.317 8.203.486.485.486.221.221 0 .486 0C.208 0 .221.221 0 .486 0C4.171 7.514 4.171 11.683 7.264 15.514 7.264 15.779 7.477 16 7.733 16 7.989 16 8.203 15.779 8.203 15.514 8.203 11.683 11.296 8.486 15 8.486 15.259 8.486 15.467 8.265 15.467 8 15.467 7.729 15.259 7.514 15 7.514Z" fill="#FB31A7"/></svg>
+      Assistant
+    </button>
+    <div class="tn-divider"></div>
+    <div class="tn-account">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5" r="3" fill="rgba(255,255,255,.7)"/><path d="M1 13c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="rgba(255,255,255,.7)" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+      <span>Longer business name</span>
+      <svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M2.27 4.77a1 1 0 011.41 0L7 8.09l3.32-3.32a1 1 0 011.41 1.42L7.7 10.2a1 1 0 01-1.41 0L2.27 6.19a1 1 0 010-1.42z" fill="rgba(255,255,255,.7)"/></svg>
+    </div>
+  </div>
+</nav>
+
+<!-- ───── APP BODY ───── -->
+<div class="app-body">
+
+  <!-- ── ICON SIDENAV ── -->
+  <nav class="sidenav">
+    <div class="nav-icon" title="Home">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M13.286 8.14C13.6 8.14 13.857 8.4 13.857 8.714V14.428C13.857 14.743 13.6 15 13.286 15H9.857C9.543 15 9.286 14.743 9.286 14.428V10.428H7V14.428C7 14.743 6.743 15 6.429 15H3C2.686 15 2.429 14.743 2.429 14.428V8.714C2.429 8.4 2.686 8.143 3 8.143C3.314 8.143 3.571 8.4 3.571 8.714V13.857H5.857V9.857C5.857 9.543 6.114 9.286 6.429 9.286H9.857C10.171 9.286 10.429 9.543 10.429 9.857V13.857H12.714V8.714C12.714 8.4 12.971 8.143 13.286 8.143V8.14Z" fill="currentColor"/>
+        <path d="M7.737.308C7.96.086 8.32.086 8.543.308L14.828 6.594C15.051 6.817 15.051 7.177 14.828 7.4 14.714 7.514 14.571 7.566 14.423 7.566L14.428 7.571C14.28 7.571 14.137 7.514 14.023 7.406L8.143 1.526 2.263 7.406C2.04 7.629 1.68 7.629 1.457 7.406 1.234 7.183 1.234 6.823 1.457 6.6L7.737.308Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-icon" title="Contacts">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8.806 9.32C9.777 9.32 10.663 9.863 11.114 10.732 11.263 11.011 11.154 11.354 10.874 11.503 10.789 11.549 10.697 11.566 10.612 11.566V11.571C10.406 11.571 10.206 11.457 10.103 11.263 9.846 10.771 9.349 10.469 8.806 10.469 8.263 10.469 7.766 10.771 7.508 11.263 7.366 11.543 7.017 11.651 6.737 11.503 6.457 11.36 6.349 11.011 6.497 10.732 6.949 9.863 7.834 9.32 8.806 9.32Z" fill="currentColor"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M8.806 4.143C9.909 4.143 10.806 5.04 10.806 6.143 10.806 7.246 9.909 8.143 8.806 8.143 7.703 8.143 6.806 7.246 6.806 6.143 6.806 5.04 7.703 4.143 8.806 4.143ZM8.806 5.286C8.331 5.286 7.949 5.669 7.949 6.143 7.949 6.617 8.331 7 8.806 7 9.28 7 9.663 6.617 9.663 6.143 9.663 5.669 9.28 5.286 8.806 5.286Z" fill="currentColor"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12.714 1.286C13.657 1.286 14.429 2.057 14.429 3V13.286C14.429 14.229 13.657 15 12.714 15H4.714C3.771 15 3 14.229 3 13.286V11.571H2.429C2.114 11.571 1.857 11.314 1.857 11 1.857 10.686 2.114 10.429 2.429 10.429H3V8.714H2.429C2.114 8.714 1.857 8.457 1.857 8.143 1.857 7.829 2.114 7.571 2.429 7.571H3V5.857H2.429C2.114 5.857 1.857 5.6 1.857 5.286 1.857 4.971 2.114 4.714 2.429 4.714H3V3C3 2.057 3.771 1.286 4.714 1.286H12.714ZM4.714 2.429C4.4 2.429 4.143 2.686 4.143 3V4.714H4.714C5.029 4.714 5.286 4.971 5.286 5.286 5.286 5.6 5.029 5.857 4.714 5.857H4.143V7.571H4.714C5.029 7.571 5.286 7.829 5.286 8.143 5.286 8.457 5.029 8.714 4.714 8.714H4.143V10.429H4.714C5.029 10.429 5.286 10.686 5.286 11 5.286 11.314 5.029 11.571 4.714 11.571H4.143V13.286C4.143 13.6 4.4 13.857 4.714 13.857H12.714C13.029 13.857 13.286 13.6 13.286 13.286V3C13.286 2.686 13.029 2.429 12.714 2.429H4.714Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="nav-icon active" title="Companies">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M7.594 2.429C7.909 2.429 8.166 2.686 8.166 3V13.286C8.166 13.6 7.909 13.857 7.594 13.857 7.28 13.857 7.023 13.6 7.023 13.286V3.571H2.429V13.286C2.429 13.6 2.171 13.857 1.857 13.857 1.543 13.857 1.286 13.6 1.286 13.286V3C1.286 2.686 1.543 2.429 1.857 2.429H7.594Z" fill="currentColor"/>
+        <path d="M11.069 5.949C11.263 5.823 11.509 5.823 11.703 5.949L14.748 7.983C14.909 8.091 15.006 8.269 15.006 8.457V13.28C15.006 13.594 14.748 13.851 14.434 13.851L14.429 13.857C14.114 13.857 13.857 13.6 13.857 13.286V8.766L11.383 7.114 9.383 7.76C9.206 7.497 9.28 7.143 9.543 6.966L11.069 5.949Z" fill="currentColor"/>
+        <path d="M5.286 9.286C5.6 9.286 5.857 9.543 5.857 9.857 5.857 10.171 5.6 10.429 5.286 10.429H4.143C3.829 10.429 3.571 10.171 3.571 9.857 3.571 9.543 3.829 9.286 4.143 9.286H5.286Z" fill="currentColor"/>
+        <path d="M5.286 7C5.6 7 5.857 7.257 5.857 7.571 5.857 7.886 5.6 8.143 5.286 8.143H4.143C3.829 8.143 3.571 7.886 3.571 7.571 3.571 7.257 3.829 7 4.143 7H5.286Z" fill="currentColor"/>
+        <path d="M5.286 4.714C5.6 4.714 5.857 4.971 5.857 5.286 5.857 5.6 5.6 5.857 5.286 5.857H4.143C3.829 5.857 3.571 5.6 3.571 5.286 3.571 4.971 3.829 4.714 4.143 4.714H5.286Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="nav-icon" title="Deals">
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        <path d="M7 3.5v7M4.5 5.5C4.5 4.4 5.6 3.5 7 3.5s2.5.9 2.5 2-.9 1.5-2.5 1.5S4.5 8 4.5 9s1.1 1.5 2.5 1.5 2.5-.9 2.5-1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+    <div class="nav-icon" title="Tasks">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M13 3H9.5M13 8H9.5M13 13H9.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        <rect x="3" y="2" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/>
+        <rect x="3" y="7" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/>
+        <rect x="3" y="12" width="4" height="2" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/>
+      </svg>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-icon" title="Email">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="1.5" y="3.5" width="13" height="9" rx="1.5" stroke="currentColor" stroke-width="1.1" fill="none"/>
+        <path d="M1.5 5L8 9.5 14.5 5" stroke="currentColor" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="nav-icon" title="Reports">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M2 12V8M6 12V5M10 12V7M14 12V3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </nav>
+
+  <!-- ── MAIN AREA ── -->
+  <div class="main-area">
+    <div class="white-surface">
+
+      <!-- ── CONTACTS INDEX PAGE ── -->
+      <div class="idx-page">
+
+        <!-- Page header -->
+        <div class="idx-header">
+          <div class="idx-title-group">
+            <span class="idx-title">Companies</span>
+            <div class="idx-title-chevron">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.27 4.77a1 1 0 011.41 0L7 8.09l3.32-3.32a1 1 0 011.41 1.42L7.7 10.2a1 1 0 01-1.41 0L2.27 6.19a1 1 0 010-1.42z" fill="currentColor"/></svg>
+            </div>
+          </div>
+          <div class="idx-header-actions">
+            <div class="idx-kebab" title="More actions">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <circle cx="7" cy="2.5" r="1.2" fill="currentColor"/>
+                <circle cx="7" cy="7" r="1.2" fill="currentColor"/>
+                <circle cx="7" cy="11.5" r="1.2" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="btn-split">
+              <button class="btn-split-main">Add company</button>
+              <div class="btn-split-sep"></div>
+              <button class="btn-split-menu">
+                <svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M2.27 4.77a1 1 0 011.41 0L7 8.09l3.32-3.32a1 1 0 011.41 1.42L7.7 10.2a1 1 0 01-1.41 0L2.27 6.19a1 1 0 010-1.42z" fill="rgba(255,255,255,.8)"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs + toolbar -->
+        <div class="idx-toolbar">
+          <div class="idx-tabs">
+            <button class="idx-tab active" data-view="contacts">
+              <svg class="idx-tab-icon" viewBox="0 0 16 16" fill="none">
+                <rect x="1.5" y="1.5" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                <path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+              </svg>
+              All deals
+            </button>
+            <button class="idx-tab" data-view="contacts">My contacts</button>
+            <button class="idx-tab" data-view="contacts">Needs follow-up</button>
+            <button class="idx-tab idx-tab-agent" data-view="prospecting">
+              <svg class="idx-tab-agent-icon" viewBox="0 0 15.47 16" fill="none"><path d="M15 7.514C11.296 7.514 8.203 4.317 8.203.486 8.203.221 7.989 0 7.733 0 7.477 0 7.264.221 7.264.486 7.264 4.317 4.171 7.514.469 7.514.208 7.514 0 7.735 0 8c0 .271.208.486.469.486C4.171 8.486 7.264 11.683 7.264 15.514c0 .265.213.486.469.486.256 0 .469-.221.469-.486.469-3.831 3.562-7.028 7.265-7.028C15.259 8.486 15.467 8.265 15.467 8c0-.271-.208-.486-.469-.486Z" fill="#5b3fc8"/></svg>
+              Prospecting Agent
+              <span class="idx-tab-agent-count">12</span>
+            </button>
+            <button class="idx-tab-add" title="Add view">+</button>
+          </div>
+          <div class="idx-toolbar-right">
+            <button class="idx-icon-btn" title="Search">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M13 13L9.3 9.3M10.5 6.25a4.25 4.25 0 11-8.5 0 4.25 4.25 0 018.5 0z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+            </button>
+            <button class="idx-icon-btn" title="Filter">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 3h12M3 7h8M5 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </button>
+            <button class="idx-icon-btn" title="Sort">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 2v10M3 12l-2-2M3 12l2-2M11 2v10M11 2l-2 2M11 2l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            </button>
+            <button class="idx-icon-btn" title="View settings">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2" fill="none"/><circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+            </button>
+            <div class="idx-toolbar-sep"></div>
+            <div class="idx-view-toggle">
+              <button class="idx-view-btn" title="Board view">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="4" height="11" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="8.5" y="1.5" width="4" height="7" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+              </button>
+              <button class="idx-view-btn active" title="Table view">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M1.5 5.5h11M5.5 1.5v11" stroke="currentColor" stroke-width="1.1"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="idx-divider"></div>
+
+        <!-- ── CONTACTS VIEW ── -->
+        <div class="idx-view" id="view-contacts">
+        <!-- Table -->
+        <div class="idx-table-wrap">
+          <table class="idx-table">
+            <thead>
+              <tr>
+                <th class="idx-th"><div class="idx-cb"></div></th>
+                <th class="idx-th co-primary">Company</th>
+                <th class="idx-th industry">Industry</th>
+                <th class="idx-th lifecycle">Lifecycle Stage</th>
+                <th class="idx-th activity">Recent activity</th>
+                <th id="th-smart" class="idx-th smart col-smart">
+                  <div class="th-inner">
+                    Smart property
+                    <span class="th-agent-badge">
+                      <svg width="9" height="9" viewBox="0 0 15.47 16" fill="none"><path d="M15 7.514C11.296 7.514 8.203 4.317 8.203.486 8.203.221 7.989 0 7.733 0 7.477 0 7.264.221 7.264.486 7.264 4.317 4.171 7.514.469 7.514.208 7.514 0 7.735 0 8c0 .271.208.486.469.486C4.171 8.486 7.264 11.683 7.264 15.514c0 .265.213.486.469.486.256 0 .469-.221.469-.486.469-3.831 3.562-7.028 7.265-7.028C15.259 8.486 15.467 8.265 15.467 8c0-.271-.208-.486-.469-.486Z" fill="#5b3fc8"/></svg>
+                      Data Agent
+                    </span>
+                  </div>
+                </th>
+                <th class="idx-th co-contacts"># Contacts</th>
+                <th class="idx-th location">HQ Location</th>
+                <th class="idx-th employees">Employees</th>
+                <th class="idx-th created">Create date</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <!-- Row 1 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td">
+                  <div class="idx-company">
+                    <div class="idx-co-logo co-g">G</div>
+                    <span class="idx-co-name-primary">Greenwell Brokers</span>
+                  </div>
+                </td>
+                <td class="idx-td muted">Financial Services</td>
+                <td class="idx-td"><span class="idx-badge badge-blue">Appointment Scheduled</span></td>
+                <td class="idx-td">
+                  <div class="idx-activity">
+                    <svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M1.5 5.5h11" stroke="currentColor" stroke-width="1"/></svg>
+                    Email opened 32 min
+                  </div>
+                </td>
+                <td class="idx-td smart col-smart"><div id="smart-1" class="smart-cell-content"></div></td>
+                <td class="idx-td muted">8</td>
+                <td class="idx-td muted">Chicago, IL</td>
+                <td class="idx-td muted">240</td>
+                <td class="idx-td muted">Feb 14, 2024</td>
+              </tr>
+
+            <tbody>
+
+              <!-- Row 2 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-v">V</div><span class="idx-co-name-primary">Veridian Dynamics</span></div></td>
+                <td class="idx-td muted">Technology</td>
+                <td class="idx-td"><span class="idx-badge badge-green">Won ✨</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 5C2 5 3.5 3 7 3s5 2 5 2M2 5v5a1 1 0 001 1h8a1 1 0 001-1V5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/></svg>Call logged 1 day ago</div></td>
+                <td class="idx-td smart col-smart"><div id="smart-2" class="smart-cell-content"></div></td>
+                <td class="idx-td muted">12</td>
+                <td class="idx-td muted">San Francisco, CA</td>
+                <td class="idx-td muted">580</td>
+                <td class="idx-td muted">Mar 3, 2024</td>
+              </tr>
+
+              <!-- Row 3 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-n">N</div><span class="idx-co-name-primary">Nova Systems</span></div></td>
+                <td class="idx-td muted">Technology</td>
+                <td class="idx-td"><span class="idx-badge badge-green">Won ✨</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M5 7l2-2 2 2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Viewed website 2 days ago</div></td>
+                <td class="idx-td smart col-smart"><div id="smart-3" class="smart-cell-content"></div></td>
+                <td class="idx-td muted">3</td>
+                <td class="idx-td muted">Austin, TX</td>
+                <td class="idx-td muted">180</td>
+                <td class="idx-td muted">Apr 22, 2024</td>
+              </tr>
+
+              <!-- Row 4 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-s">S</div><span class="idx-co-name-primary">Stellar Solutions</span></div></td>
+                <td class="idx-td muted">SaaS</td>
+                <td class="idx-td"><span class="idx-badge badge-purple">Qualified to Buy</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M1.5 5.5h11" stroke="currentColor" stroke-width="1"/></svg>Email opened 1 week ago</div></td>
+                <td class="idx-td smart col-smart"><div id="smart-4" class="smart-cell-content"></div></td>
+                <td class="idx-td muted">6</td>
+                <td class="idx-td muted">Seattle, WA</td>
+                <td class="idx-td muted">340</td>
+                <td class="idx-td muted">Jan 9, 2024</td>
+              </tr>
+
+              <!-- Row 5 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-p">P</div><span class="idx-co-name-primary">Pinnacle Systems</span></div></td>
+                <td class="idx-td muted">IT Services</td>
+                <td class="idx-td"><span class="idx-badge badge-blue">Appointment Scheduled</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M1.5 5.5h11" stroke="currentColor" stroke-width="1"/></svg>Email opened 2 days ago</div></td>
+                <td class="idx-td smart col-smart"><div id="smart-5" class="smart-cell-content"></div></td>
+                <td class="idx-td muted">9</td>
+                <td class="idx-td muted">Denver, CO</td>
+                <td class="idx-td muted">450</td>
+                <td class="idx-td muted">May 17, 2024</td>
+              </tr>
+
+              <!-- Row 6 -->
+              <tr id="enrich-row" class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-h">H</div><span class="idx-co-name-primary">Horizonyte</span></div></td>
+                <td class="idx-td muted">Software</td>
+                <td class="idx-td"><span class="idx-badge badge-orange">Contract Sent</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 2h10v10H2zM5 5h4M5 7.5h4M5 10h2" stroke="currentColor" stroke-width="1" stroke-linecap="round" fill="none"/></svg>Quote viewed 1 week ago</div></td>
+                <td id="smart-enrich-cell" class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">4</td>
+                <td class="idx-td muted">Boston, MA</td>
+                <td class="idx-td muted">95</td>
+                <td class="idx-td muted">Jun 2, 2024</td>
+              </tr>
+
+              <!-- Row 7 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-su">S</div><span class="idx-co-name-primary">Summit Group</span></div></td>
+                <td class="idx-td muted">Consulting</td>
+                <td class="idx-td"><span class="idx-badge badge-purple">Qualified to Buy</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 11l2-2 2 2 2-4 2 2 2-5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Customer message 4 days</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">5</td>
+                <td class="idx-td muted">New York, NY</td>
+                <td class="idx-td muted">820</td>
+                <td class="idx-td muted">Nov 14, 2023</td>
+              </tr>
+
+              <!-- Row 8 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#f39c12;">W</div><span class="idx-co-name-primary">Walters &amp; Co</span></div></td>
+                <td class="idx-td muted">Retail</td>
+                <td class="idx-td"><span class="idx-badge badge-blue">Appointment Scheduled</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M1.5 5.5h11" stroke="currentColor" stroke-width="1"/></svg>Email opened 5 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">2</td>
+                <td class="idx-td muted">Portland, OR</td>
+                <td class="idx-td muted">120</td>
+                <td class="idx-td muted">Dec 5, 2023</td>
+              </tr>
+
+              <!-- Row 9 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-b">B</div><span class="idx-co-name-primary">Brightly</span></div></td>
+                <td class="idx-td muted">Marketing Tech</td>
+                <td class="idx-td"><span class="idx-badge badge-orange">Contract Sent</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 2h10v10H2zM5 5h4M5 7.5h4" stroke="currentColor" stroke-width="1" stroke-linecap="round" fill="none"/></svg>Form submitted 2 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">7</td>
+                <td class="idx-td muted">Atlanta, GA</td>
+                <td class="idx-td muted">65</td>
+                <td class="idx-td muted">Jan 28, 2024</td>
+              </tr>
+
+              <!-- Row 10 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#27ae60;">A</div><span class="idx-co-name-primary">Apex Digital</span></div></td>
+                <td class="idx-td muted">Digital Agency</td>
+                <td class="idx-td"><span class="idx-badge badge-green">Won ✨</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M5 7l2-2 2 2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Viewed website 3 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">11</td>
+                <td class="idx-td muted">Miami, FL</td>
+                <td class="idx-td muted">310</td>
+                <td class="idx-td muted">Aug 19, 2023</td>
+              </tr>
+
+              <!-- Row 11 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-br">B</div><span class="idx-co-name-primary">Brehm</span></div></td>
+                <td class="idx-td muted">Manufacturing</td>
+                <td class="idx-td"><span class="idx-badge badge-purple">Qualified to Buy</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M1.5 5.5h11" stroke="currentColor" stroke-width="1"/></svg>Email opened 5 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">4</td>
+                <td class="idx-td muted">Detroit, MI</td>
+                <td class="idx-td muted">1,200</td>
+                <td class="idx-td muted">Sep 30, 2023</td>
+              </tr>
+
+              <!-- Row 12 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-cs">C</div><span class="idx-co-name-primary">Cogswell Cofs</span></div></td>
+                <td class="idx-td muted">Engineering</td>
+                <td class="idx-td"><span class="idx-badge badge-blue">Appointment Scheduled</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 2h10v10H2zM5 5h4M5 7.5h4" stroke="currentColor" stroke-width="1" stroke-linecap="round" fill="none"/></svg>Form submitted 4 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">3</td>
+                <td class="idx-td muted">Pittsburgh, PA</td>
+                <td class="idx-td muted">440</td>
+                <td class="idx-td muted">Oct 12, 2023</td>
+              </tr>
+
+              <!-- Row 13 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#8e44ad;">P</div><span class="idx-co-name-primary">Pals Industries</span></div></td>
+                <td class="idx-td muted">Consulting</td>
+                <td class="idx-td"><span class="idx-badge badge-purple">Qualified to Buy</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 5C2 5 3.5 3 7 3s5 2 5 2M2 5v5a1 1 0 001 1h8a1 1 0 001-1V5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/></svg>Call logged 2 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">6</td>
+                <td class="idx-td muted">Dallas, TX</td>
+                <td class="idx-td muted">280</td>
+                <td class="idx-td muted">Jul 7, 2024</td>
+              </tr>
+
+              <!-- Row 14 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-ss">S</div><span class="idx-co-name-primary">Singer Services</span></div></td>
+                <td class="idx-td muted">Professional Svcs</td>
+                <td class="idx-td"><span class="idx-badge badge-green">Won ✨</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M5 7l2-2 2 2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Viewed website 1 week ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">2</td>
+                <td class="idx-td muted">Phoenix, AZ</td>
+                <td class="idx-td muted">130</td>
+                <td class="idx-td muted">Feb 29, 2024</td>
+              </tr>
+
+              <!-- Row 15 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-mn">M</div><span class="idx-co-name-primary">Mayer Networks</span></div></td>
+                <td class="idx-td muted">Networking</td>
+                <td class="idx-td"><span class="idx-badge badge-purple">Qualified to Buy</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 11l2-2 2 2 2-4 2 2 2-5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Customer message 1 week</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">8</td>
+                <td class="idx-td muted">Minneapolis, MN</td>
+                <td class="idx-td muted">390</td>
+                <td class="idx-td muted">Mar 18, 2024</td>
+              </tr>
+
+              <!-- Row 16 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo co-ac">A</div><span class="idx-co-name-primary">Acme Corp</span></div></td>
+                <td class="idx-td muted">Manufacturing</td>
+                <td class="idx-td"><span class="idx-badge badge-orange">Contract Sent</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M1.5 5.5h11" stroke="currentColor" stroke-width="1"/></svg>Email opened 3 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">5</td>
+                <td class="idx-td muted">Chicago, IL</td>
+                <td class="idx-td muted">2,100</td>
+                <td class="idx-td muted">Apr 5, 2024</td>
+              </tr>
+
+              <!-- Row 17 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#e74c3c;">C</div><span class="idx-co-name-primary">Chen Ventures</span></div></td>
+                <td class="idx-td muted">Venture Capital</td>
+                <td class="idx-td"><span class="idx-badge badge-purple">Qualified to Buy</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M1.5 5.5h11" stroke="currentColor" stroke-width="1"/></svg>Email opened 1 day ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">3</td>
+                <td class="idx-td muted">San Jose, CA</td>
+                <td class="idx-td muted">45</td>
+                <td class="idx-td muted">May 22, 2024</td>
+              </tr>
+
+              <!-- Row 18 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#2980b9;">P</div><span class="idx-co-name-primary">Park &amp; Associates</span></div></td>
+                <td class="idx-td muted">Consulting</td>
+                <td class="idx-td"><span class="idx-badge badge-blue">Appointment Scheduled</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 5C2 5 3.5 3 7 3s5 2 5 2M2 5v5a1 1 0 001 1h8a1 1 0 001-1V5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/></svg>Call logged 3 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">7</td>
+                <td class="idx-td muted">Phoenix, AZ</td>
+                <td class="idx-td muted">190</td>
+                <td class="idx-td muted">Jun 11, 2024</td>
+              </tr>
+
+              <!-- Row 19 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#16a085;">F</div><span class="idx-co-name-primary">Foster Global</span></div></td>
+                <td class="idx-td muted">Technology</td>
+                <td class="idx-td"><span class="idx-badge badge-green">Won ✨</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 11l2-2 2 2 2-4 2 2 2-5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Customer message 2 days</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">9</td>
+                <td class="idx-td muted">Seattle, WA</td>
+                <td class="idx-td muted">520</td>
+                <td class="idx-td muted">Jul 30, 2024</td>
+              </tr>
+
+              <!-- Row 20 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#c0392b;">R</div><span class="idx-co-name-primary">Rivera Holdings</span></div></td>
+                <td class="idx-td muted">Finance</td>
+                <td class="idx-td"><span class="idx-badge badge-orange">Contract Sent</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M5 7l2-2 2 2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Viewed website 4 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">4</td>
+                <td class="idx-td muted">Houston, TX</td>
+                <td class="idx-td muted">860</td>
+                <td class="idx-td muted">Aug 8, 2024</td>
+              </tr>
+
+              <!-- Row 21 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#6c5ce7;">K</div><span class="idx-co-name-primary">Kowalski Ltd</span></div></td>
+                <td class="idx-td muted">Legal</td>
+                <td class="idx-td"><span class="idx-badge badge-purple">Qualified to Buy</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 2h10v10H2zM5 5h4M5 7.5h4" stroke="currentColor" stroke-width="1" stroke-linecap="round" fill="none"/></svg>Form submitted 6 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">3</td>
+                <td class="idx-td muted">Warsaw, PL</td>
+                <td class="idx-td muted">110</td>
+                <td class="idx-td muted">Sep 14, 2024</td>
+              </tr>
+
+              <!-- Row 22 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#00b894;">N</div><span class="idx-co-name-primary">Nguyen Systems</span></div></td>
+                <td class="idx-td muted">Technology</td>
+                <td class="idx-td"><span class="idx-badge badge-blue">Appointment Scheduled</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M1.5 5.5h11" stroke="currentColor" stroke-width="1"/></svg>Email opened 2 days ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">6</td>
+                <td class="idx-td muted">Houston, TX</td>
+                <td class="idx-td muted">280</td>
+                <td class="idx-td muted">Oct 1, 2024</td>
+              </tr>
+
+              <!-- Row 23 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#fd79a8;">K</div><span class="idx-co-name-primary">Kim &amp; Partners</span></div></td>
+                <td class="idx-td muted">Legal</td>
+                <td class="idx-td"><span class="idx-badge badge-green">Won ✨</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 5C2 5 3.5 3 7 3s5 2 5 2M2 5v5a1 1 0 001 1h8a1 1 0 001-1V5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/></svg>Call logged 1 week ago</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">5</td>
+                <td class="idx-td muted">Los Angeles, CA</td>
+                <td class="idx-td muted">130</td>
+                <td class="idx-td muted">Nov 5, 2024</td>
+              </tr>
+
+              <!-- Row 24 -->
+              <tr class="idx-tr">
+                <td class="idx-td"><div class="idx-cb"></div></td>
+                <td class="idx-td"><div class="idx-company"><div class="idx-co-logo" style="background:#0984e3;">M</div><span class="idx-co-name-primary">Mitchell Group</span></div></td>
+                <td class="idx-td muted">Finance</td>
+                <td class="idx-td"><span class="idx-badge badge-orange">Contract Sent</span></td>
+                <td class="idx-td"><div class="idx-activity"><svg class="idx-activity-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 11l2-2 2 2 2-4 2 2 2-5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Customer message 3 days</div></td>
+                <td class="idx-td smart col-smart"><div class="smart-cell-content"></div></td>
+                <td class="idx-td muted">3</td>
+                <td class="idx-td muted">New York, NY</td>
+                <td class="idx-td muted">95</td>
+                <td class="idx-td muted">Dec 20, 2024</td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="idx-footer">
+          <span class="idx-footer-count">178 companies in view</span>
+          <div class="idx-footer-actions">
+            <button class="btn-ghost">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M7 1l3 3M7 1L4 4M1 9h12M1 9l3-3M1 9l3 3M13 9l-3-3M13 9l-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+              Clone
+            </button>
+          </div>
+        </div>
+        </div><!-- /view-contacts -->
+
+        <!-- ── PROSPECTING VIEW ── -->
+        <div class="idx-view" id="view-prospecting" hidden>
+          <div class="idx-table-wrap">
+            <table class="idx-table" style="min-width:1400px;">
+              <thead>
+                <tr>
+                  <th class="pro-th"><div class="idx-cb"></div></th>
+                  <th class="pro-th primary" style="width:260px;">Company</th>
+                  <th class="pro-th" style="width:160px;">Industry</th>
+                  <th class="pro-th" style="width:130px;">Employees</th>
+                  <th class="pro-th" style="width:180px;">Location</th>
+                  <th class="pro-th" style="width:300px;">
+                    <span style="display:inline-flex;align-items:center;gap:6px;">
+                      Agent signal
+                      <span class="th-agent-badge" style="font-size:10px;height:16px;">
+                        <svg width="8" height="8" viewBox="0 0 15.47 16" fill="none"><path d="M15 7.514C11.296 7.514 8.203 4.317 8.203.486 8.203.221 7.989 0 7.733 0 7.477 0 7.264.221 7.264.486 7.264 4.317 4.171 7.514.469 7.514.208 7.514 0 7.735 0 8c0 .271.208.486.469.486C4.171 8.486 7.264 11.683 7.264 15.514c0 .265.213.486.469.486.256 0 .469-.221.469-.486.469-3.831 3.562-7.028 7.265-7.028C15.259 8.486 15.467 8.265 15.467 8c0-.271-.208-.486-.469-.486Z" fill="#5b3fc8"/></svg>
+                        Prospecting Agent
+                      </span>
+                    </span>
+                  </th>
+                  <th class="pro-th" style="width:150px;">Funding</th>
+                  <th class="pro-th" style="width:120px;">Fit</th>
+                  <th class="pro-th" style="width:140px;border-right:none;"></th>
+                </tr>
+              </thead>
+              <tbody>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#2ecc71;">A</div><span class="pro-co-name">Acme Manufacturing</span></div></td>
+                  <td class="pro-td muted">Manufacturing</td>
+                  <td class="pro-td muted">2,400</td>
+                  <td class="pro-td muted">Chicago, IL</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>Hiring 3 RevOps roles this quarter</div></td>
+                  <td class="pro-td muted">Series C</td>
+                  <td class="pro-td"><span class="pro-fit fit-high">High fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#e74c3c;">N</div><span class="pro-co-name">Nexus Health</span></div></td>
+                  <td class="pro-td muted">Healthcare</td>
+                  <td class="pro-td muted">850</td>
+                  <td class="pro-td muted">Boston, MA</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>CTO posted about replacing legacy CRM</div></td>
+                  <td class="pro-td muted">Series B</td>
+                  <td class="pro-td"><span class="pro-fit fit-high">High fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#3498db;">Q</div><span class="pro-co-name">Quantum Dynamics</span></div></td>
+                  <td class="pro-td muted">Technology</td>
+                  <td class="pro-td muted">400</td>
+                  <td class="pro-td muted">Austin, TX</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>Raised $20M Series B last month</div></td>
+                  <td class="pro-td muted">Series B</td>
+                  <td class="pro-td"><span class="pro-fit fit-high">High fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#9b59b6;">P</div><span class="pro-co-name">Pacific Retail Group</span></div></td>
+                  <td class="pro-td muted">Retail</td>
+                  <td class="pro-td muted">3,100</td>
+                  <td class="pro-td muted">Seattle, WA</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>Job posting explicitly mentions HubSpot</div></td>
+                  <td class="pro-td muted">Public</td>
+                  <td class="pro-td"><span class="pro-fit fit-high">High fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#1abc9c;">S</div><span class="pro-co-name">Summit Education</span></div></td>
+                  <td class="pro-td muted">Education</td>
+                  <td class="pro-td muted">950</td>
+                  <td class="pro-td muted">Denver, CO</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>Posted RFP for CRM vendor evaluation</div></td>
+                  <td class="pro-td muted">Non-profit</td>
+                  <td class="pro-td"><span class="pro-fit fit-high">High fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#e67e22;">H</div><span class="pro-co-name">Horizon Energy</span></div></td>
+                  <td class="pro-td muted">Energy</td>
+                  <td class="pro-td muted">1,800</td>
+                  <td class="pro-td muted">Houston, TX</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>Competitor contract expires Q2 2026</div></td>
+                  <td class="pro-td muted">Public</td>
+                  <td class="pro-td"><span class="pro-fit fit-high">High fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#4285F4;">A</div><span class="pro-co-name">Apex Logistics</span></div></td>
+                  <td class="pro-td muted">Logistics</td>
+                  <td class="pro-td muted">1,200</td>
+                  <td class="pro-td muted">Dallas, TX</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>Attended competitor's product webinar</div></td>
+                  <td class="pro-td muted">Growth</td>
+                  <td class="pro-td"><span class="pro-fit fit-med">Medium fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#0984e3;">M</div><span class="pro-co-name">Meridian Financial</span></div></td>
+                  <td class="pro-td muted">Finance</td>
+                  <td class="pro-td muted">620</td>
+                  <td class="pro-td muted">New York, NY</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>GDPR compliance initiative announced</div></td>
+                  <td class="pro-td muted">Series A</td>
+                  <td class="pro-td"><span class="pro-fit fit-med">Medium fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#6c5ce7;">V</div><span class="pro-co-name">Vega Biotech</span></div></td>
+                  <td class="pro-td muted">Biotech</td>
+                  <td class="pro-td muted">310</td>
+                  <td class="pro-td muted">San Diego, CA</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>New VP of Sales joined from competitor</div></td>
+                  <td class="pro-td muted">Series B</td>
+                  <td class="pro-td"><span class="pro-fit fit-med">Medium fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#fd79a8;">B</div><span class="pro-co-name">BlueWave Media</span></div></td>
+                  <td class="pro-td muted">Media</td>
+                  <td class="pro-td muted">420</td>
+                  <td class="pro-td muted">Los Angeles, CA</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>3 employees visited pricing page this week</div></td>
+                  <td class="pro-td muted">Series A</td>
+                  <td class="pro-td"><span class="pro-fit fit-med">Medium fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#636e72;">C</div><span class="pro-co-name">Coastal Properties</span></div></td>
+                  <td class="pro-td muted">Real Estate</td>
+                  <td class="pro-td muted">280</td>
+                  <td class="pro-td muted">Miami, FL</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>Website traffic spike on pricing page</div></td>
+                  <td class="pro-td muted">Seed</td>
+                  <td class="pro-td"><span class="pro-fit fit-low">Low fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+                <tr class="idx-tr">
+                  <td class="pro-td"><div class="idx-cb"></div></td>
+                  <td class="pro-td primary"><div class="idx-company"><div class="idx-co-logo" style="background:#2c3e50;">A</div><span class="pro-co-name">Atlas Consulting</span></div></td>
+                  <td class="pro-td muted">Consulting</td>
+                  <td class="pro-td muted">180</td>
+                  <td class="pro-td muted">Atlanta, GA</td>
+                  <td class="pro-td"><div class="pro-signal"><div class="pro-signal-dot"></div>Subscribed to email list last week</div></td>
+                  <td class="pro-td muted">Bootstrap</td>
+                  <td class="pro-td"><span class="pro-fit fit-low">Low fit</span></td>
+                  <td class="pro-td"><button class="btn-add-crm"><svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Add to CRM</button></td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+          <div class="idx-footer">
+            <span class="idx-footer-count">12 companies found by Prospecting Agent</span>
+            <div class="idx-footer-actions">
+              <button class="btn-ghost" style="border-color:#d4caff;color:#5b3fc8;">
+                <svg width="10" height="10" viewBox="0 0 15.47 16" fill="none"><path d="M15 7.514C11.296 7.514 8.203 4.317 8.203.486 8.203.221 7.989 0 7.733 0 7.477 0 7.264.221 7.264.486 7.264 4.317 4.171 7.514.469 7.514.208 7.514 0 7.735 0 8c0 .271.208.486.469.486C4.171 8.486 7.264 11.683 7.264 15.514c0 .265.213.486.469.486.256 0 .469-.221.469-.486.469-3.831 3.562-7.028 7.265-7.028C15.259 8.486 15.467 8.265 15.467 8c0-.271-.208-.486-.469-.486Z" fill="#5b3fc8"/></svg>
+                Add all to CRM
+              </button>
+            </div>
+          </div>
+        </div><!-- /view-prospecting -->
+
+      </div><!-- /idx-page -->
+
+    </div><!-- /white-surface -->
+  </div><!-- /main-area -->
+</div><!-- /app-body -->
+
+<script>
+const intentSignals = [
+  { id: 'smart-1', text: 'Actively researching CRM vendors on G2' },
+  { id: 'smart-2', text: 'Company headcount grew 18% this quarter' },
+  { id: 'smart-3', text: 'Searching "Salesforce alternatives" this week' },
+  { id: 'smart-4', text: 'New compliance initiative announced publicly' },
+  { id: 'smart-5', text: 'Budget cycle starts next month — Q1 signal' },
+];
+
+const remainingSignals = [
+  'Visited competitor pricing page twice',
+  'Job posting signals budget for new tools',
+  'Subscribed to industry newsletter last week',
+  'Filed 2 support tickets with current vendor',
+  'Company expanding to new market — APAC',
+  'Attended product demo webinar 4 days ago',
+  'Researching integrations on G2 this week',
+  'Legal team reviewed DPA documents',
+  'Mentioned vendor switch in LinkedIn post',
+  '3 team members from same domain visiting',
+  'Company raised Series A last quarter',
+  'Posted job for RevOps Manager role',
+  'Competitor contract expires next month',
+  'Board deck included growth target keywords',
+  'Active on community forum for CRM tools',
+  'GDPR review triggered new vendor eval',
+  'Downloaded 3 whitepapers this month',
+  'Org chart change — new CTO appointed',
+  'Raised $12M Series B — expansion signal',
+];
+
+const th = document.getElementById('th-smart');
+const allSmartCols = document.querySelectorAll('.col-smart');
+
+setTimeout(() => {
+  allSmartCols.forEach(el => el.classList.add('visible'));
+  th.classList.add('generating');
+
+  intentSignals.forEach(({ id, text }, i) => {
+    setTimeout(() => {
+      const cell = document.getElementById(id);
+      if (cell) { cell.textContent = text; cell.classList.add('shown'); }
+
+      if (i === intentSignals.length - 1) {
+        th.classList.remove('generating');
+        setTimeout(showEnrichOffer, 500);
+      }
+    }, 500 + i * 400);
+  });
+}, 1000);
+
+function showEnrichOffer() {
+  const anchor = document.getElementById('smart-enrich-cell');
+  const wrap   = document.querySelector('.idx-table-wrap');
+  const aRect  = anchor.getBoundingClientRect();
+  const wRect  = wrap.getBoundingClientRect();
+  const top    = aRect.top  - wRect.top  + wrap.scrollTop;
+  const left   = aRect.left - wRect.left + wrap.scrollLeft;
+
+  const wrapper = document.createElement('div');
+  wrapper.id = 'enrich-offer-wrapper';
+  wrapper.style.cssText = `top:${top}px;left:${left}px;width:${aRect.width}px;padding:6px 12px;`;
+  wrapper.innerHTML = `
+    <div class="enrich-offer" id="enrich-offer">
+      <div class="enrich-offer-top">
+        <div class="enrich-offer-icon">
+          <svg width="14" height="14" viewBox="0 0 15.47 16" fill="none"><path d="M15 7.514C11.296 7.514 8.203 4.317 8.203.486 8.203.221 7.989 0 7.733 0 7.477 0 7.264.221 7.264.486 7.264 4.317 4.171 7.514.469 7.514.208 7.514 0 7.735 0 8c0 .271.208.486.469.486C4.171 8.486 7.264 11.683 7.264 15.514c0 .265.213.486.469.486.256 0 .469-.221.469-.486C7.264 11.683 10.357 8.486 14.06 8.486 14.318 8.486 14.526 8.265 14.526 8c0-.271-.208-.486-.469-.486Z" fill="#5b3fc8"/></svg>
+        </div>
+        <div class="enrich-offer-body">
+          <div class="enrich-offer-title">Enrich 19 more records</div>
+          <div class="enrich-offer-sub">Data Agent will analyze intent signals for the remaining contacts in this view.</div>
+          <div class="enrich-offer-credit">
+            <svg width="9" height="9" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#5b3fc8" stroke-width="1.3" fill="none"/><path d="M7 4v3l2 1.5" stroke="#5b3fc8" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>
+            50 Credits
+          </div>
+        </div>
+      </div>
+      <div class="enrich-offer-actions">
+        <button class="btn-enrich" id="btn-enrich-now">Enrich now</button>
+        <button class="btn-enrich-ghost" id="btn-enrich-later">Not now</button>
+      </div>
+    </div>`;
+  wrap.appendChild(wrapper);
+  requestAnimationFrame(() => requestAnimationFrame(() =>
+    document.getElementById('enrich-offer').classList.add('shown')
+  ));
+
+  document.getElementById('btn-enrich-now').addEventListener('click', doEnrich);
+  document.getElementById('btn-enrich-later').addEventListener('click', dismissOffer);
+}
+
+function dismissOffer() {
+  const offer = document.getElementById('enrich-offer');
+  if (!offer) return;
+  offer.classList.remove('shown');
+  setTimeout(() => document.getElementById('enrich-offer-wrapper')?.remove(), 350);
+}
+
+function doEnrich() {
+  dismissOffer();
+  th.classList.add('generating');
+
+  const allCells = document.querySelectorAll('.smart-cell-content');
+  remainingSignals.forEach((text, i) => {
+    const cell = allCells[5 + i];
+    if (!cell) return;
+    setTimeout(() => {
+      cell.textContent = text;
+      cell.classList.add('shown');
+      if (i === remainingSignals.length - 1) th.classList.remove('generating');
+    }, i * 120);
+  });
+}
+
+// ── Tab switching ──
+document.querySelector('.idx-tabs').addEventListener('click', e => {
+  const tab = e.target.closest('[data-view]');
+  if (!tab) return;
+
+  document.querySelectorAll('[data-view]').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+
+  const isProspecting = tab.dataset.view === 'prospecting';
+  document.getElementById('view-contacts').hidden    = isProspecting;
+  document.getElementById('view-prospecting').hidden = !isProspecting;
+});
+</script>
+
+</body>
+</html>
