@@ -10,7 +10,7 @@
 /* ===== Home nav-shell vars ===== */
 :root{--color-shell:#333333;--color-card-bg:#ffffff;--color-subtle:#f0f0f0;--color-fg-normal:#141414;--color-fg-subtle:#666666;--color-fg-inverse:#ffffff;--color-border-normal:#8a8a8a;--color-border-subtle:#cccccc;--color-logo:#ff4800;--color-ai:#7d53e9;--color-btn-primary-bg:#333333;--color-btn-secondary-bg:#ffffff;--color-tag-bg:#ebebeb;--radius-card:16px;--radius-btn:9999px;--shadow-card:drop-shadow(0 1px 5px #2c3d4f1f);--font-sans:"HubSpot Sans",system-ui,sans-serif;--space-100:4px;--space-200:8px;--space-300:12px;--space-400:16px;--space-600:24px;}
 .home-shell-root{display:flex;flex-direction:column;height:100vh;background:var(--color-shell);min-width:1200px;}
-.home-shell-row{display:flex;flex:1 1 0%;overflow:hidden;}
+.home-shell-row{display:flex;flex:1 1 0%;min-height:0;overflow:hidden;}
 .home-shell-content{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;background:var(--color-card-bg);}
 .home-shell-row > div:first-child button[style*="width: 40px"][style*="height: 40px"]{border-radius:50% !important;}
 .home-shell-row > div:first-child button[data-nav-label]{position:relative;}
@@ -514,14 +514,14 @@ html,body{
 
 
 .main-area{
-  flex:1; display:flex; min-width:0;
+  flex:1; display:flex; min-width:0; min-height:0;
   background:var(--bg);
   padding:16px; gap:16px;
   align-items:stretch;
 }
 
 .white-surface{
-  flex:1; display:flex; min-width:0;
+  flex:1; display:flex; min-width:0; min-height:0;
   flex-direction:column;
   background:var(--surface);
   border-radius:var(--radius-lg);
@@ -530,7 +530,7 @@ html,body{
 }
 
 /* ─── PAGE STRUCTURE ─── */
-.idx-page{display:flex; flex-direction:column; height:100%; overflow:hidden;}
+.idx-page{display:flex; flex-direction:column; height:100%; overflow:hidden; position:relative;}
 
 /* Page header row (title + actions combined) */
 .idx-breadcrumb-row{
@@ -1064,6 +1064,9 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
 .idx-table-wrap{
   flex:1; overflow-y:auto; overflow-x:auto;
   position:relative;
+  /* Reserve scroll space so the last rows can be scrolled clear of the
+     absolutely-positioned footer below. */
+  padding-bottom:48px;
 }
 .idx-table{
   width:100%; border-collapse:separate; border-spacing:0;
@@ -1349,7 +1352,11 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
   padding:0 24px;
   height:44px;
   border-top:1px solid var(--border);
-  flex-shrink:0;
+  /* Always visible at the bottom of the page; the table rows scroll behind it. */
+  position:absolute;
+  bottom:0; left:0; right:0;
+  z-index:10;
+  background:var(--surface);
 }
 .idx-footer-count{
   display:inline-flex; align-items:center; gap:8px;
