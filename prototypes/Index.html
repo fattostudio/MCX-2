@@ -2086,17 +2086,17 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
                 </svg>
               </button>
               <div class="idx-actions-menu" id="indexOverflowMenu" role="menu" aria-hidden="true">
-                <button class="idx-actions-menu-item active" role="menuitem" data-view-mode="default">
+                <button class="idx-actions-menu-item active" role="menuitem" data-view-mode="footer-widget">
                   <span class="idx-actions-menu-item-bullet"></span>
-                  <span>Default</span>
+                  <span>Footer widget</span>
+                </button>
+                <button class="idx-actions-menu-item" role="menuitem" data-view-mode="default">
+                  <span class="idx-actions-menu-item-bullet"></span>
+                  <span>Right bar recommendation</span>
                 </button>
                 <button class="idx-actions-menu-item" role="menuitem" data-view-mode="data-agent">
                   <span class="idx-actions-menu-item-bullet"></span>
                   <span>Data Agent</span>
-                </button>
-                <button class="idx-actions-menu-item" role="menuitem" data-view-mode="footer-widget">
-                  <span class="idx-actions-menu-item-bullet"></span>
-                  <span>Footer widget</span>
                 </button>
               </div>
             </div>
@@ -2448,7 +2448,7 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
             companies in view
           </div>
           <!-- Footer Widget pill (overflow variant) -->
-          <div class="footer-widget-wrap layout-hidden" id="footerWidget">
+          <div class="footer-widget-wrap" id="footerWidget">
             <div class="fw" id="fw" data-state="closed">
               <div class="fw-switcher" id="fwSwitcher">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.005C8.276 1.005 8.5 1.229 8.5 1.505C8.5 4.819 11.186 7.505 14.5 7.505C14.776 7.505 15 7.729 15 8.005C15 8.281 14.776 8.505 14.5 8.505C11.186 8.505 8.5 11.191 8.5 14.505C8.5 14.781 8.276 15.005 8 15.005C7.724 15.005 7.5 14.781 7.5 14.505C7.5 11.191 4.814 8.505 1.5 8.505C1.224 8.505 1 8.281 1 8.005C1 7.729 1.224 7.505 1.5 7.505C4.814 7.505 7.5 4.819 7.5 1.505C7.5 1.229 7.724 1.005 8 1.005Z" fill="#666"/></svg>
@@ -2492,7 +2492,7 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
   </div>
   <div class="layout-sub-item">
     <span class="layout-sub-label">Footer widget</span>
-    <button class="layout-toggle" id="toggle-footerWidget" data-toggle="footerWidget" role="switch" aria-checked="false"></button>
+    <button class="layout-toggle on" id="toggle-footerWidget" data-toggle="footerWidget" role="switch" aria-checked="true"></button>
   </div>
 </div>
 
@@ -2557,7 +2557,7 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
   // ─── Layout mode ───
   let layoutMode = 'default';
   let previousLayoutMode = 'default';
-  let customToggles = { pageHeader: true, quickFilters: false, centerWidget: true, footerWidget: false };
+  let customToggles = { pageHeader: true, quickFilters: false, centerWidget: true, footerWidget: true };
   let scrollAutoMode = false;
 
   const headerLayoutSep = document.getElementById('headerLayoutSep');
@@ -3613,7 +3613,7 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
       });
     });
 
-    setMode('default');
+    setMode('footer-widget');
   })();
 
   /* ── Prospect hover panel ── */
@@ -4318,6 +4318,18 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
     __setFooterWidgetVisible(mode === 'footer-widget');
   });
   __fwObs.observe(document.body, { attributes:true, attributeFilter:['data-view-mode'] });
+  // Sync once on load so the widget initializes (and expands) if the page is
+  // already in 'footer-widget' mode by the time the observer is attached.
+  // Deferred to DOMContentLoaded because some helper elements (#fwCardsTray,
+  // #fwSwitcherDd) are parsed AFTER this script and initFooterWidget needs them.
+  function __syncFwOnce() {
+    __setFooterWidgetVisible(document.body.dataset.viewMode === 'footer-widget');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', __syncFwOnce, { once: true });
+  } else {
+    __syncFwOnce();
+  }
 
 })();
 </script>
