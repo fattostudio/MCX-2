@@ -516,9 +516,11 @@ html,body{
 .main-area{
   flex:1; display:flex; min-width:0;
   background:var(--bg);
-  padding:16px; gap:16px;
+  padding:16px; gap:0;
   align-items:stretch;
+  transition: gap .28s cubic-bezier(.2,.8,.3,1);
 }
+body.breeze-chat-active .main-area { gap:16px; }
 
 .white-surface{
   flex:1; display:flex; min-width:0;
@@ -1700,6 +1702,1228 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
 }
 .php-card--hero .php-outreach-btn:hover { background: #1a1a1a; border-color: #1a1a1a; }
 
+/* ── Breeze FAB + Greeting bubble ───────────────────────────────── */
+.breeze-fab {
+  position: fixed;
+  bottom: 24px;
+  left: 88px; /* 64px nav rail + 24px gutter */
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #e8832a;
+  border: 1px solid #e8832a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 9500; /* always on top — above #focusModeOverlay (9000) */
+  box-shadow: 0 4px 16px rgba(20,20,20,.08);
+  transition: background-color .15s, transform .15s, box-shadow .15s;
+}
+.breeze-fab:hover {
+  background: #fff5ef;
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(232,131,42,.18);
+}
+.breeze-fab svg { width: 20px; height: 20px; }
+.breeze-fab.has-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  border: 2px solid #e8832a;
+  animation: breezeFabPulse 1.6s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes breezeFabPulse {
+  0%   { opacity: .7; transform: scale(1); }
+  100% { opacity: 0;  transform: scale(1.35); }
+}
+
+#breezeGreetBubble {
+  position: fixed;
+  bottom: 84px;
+  left: 88px;
+  width: 320px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(20,20,20,.14);
+  z-index: 9501; /* sit above the overlay alongside the FAB */
+  display: none;
+  pointer-events: auto;
+  font-family: 'HubSpot Sans','Inter',system-ui,sans-serif;
+  overflow: hidden;
+}
+#breezeGreetBubble.visible {
+  display: block;
+  animation: breezeBubbleIn .22s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes breezeBubbleIn {
+  from { opacity: 0; transform: translateY(8px) scale(.96); transform-origin: 0 100%; }
+  to   { opacity: 1; transform: translateY(0)   scale(1);   transform-origin: 0 100%; }
+}
+#breezeGreetBubble::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 16px;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  transform: rotate(45deg);
+}
+.breeze-greet-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 0;
+}
+.breeze-greet-avatar {
+  width: 24px; height: 24px;
+  border-radius: 9999px;
+  background: #fff5ef;
+  border: 1px solid #e8832a;
+  display: flex; align-items: center; justify-content: center;
+  color: #e8832a;
+  flex-shrink: 0;
+}
+.breeze-greet-avatar svg { width: 12px; height: 12px; }
+.breeze-greet-name {
+  font-size: 13px; font-weight: 500; color: #141414;
+}
+.breeze-greet-close {
+  margin-left: auto;
+  width: 22px; height: 22px;
+  border: none; background: transparent;
+  color: #8a8a8a;
+  border-radius: 9999px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.breeze-greet-close:hover { background: #f5f5f5; color: #141414; }
+.breeze-greet-body {
+  padding: 8px 16px 0 48px; /* align with avatar+gap */
+  font-size: 13px; line-height: 1.5; color: #141414;
+}
+.breeze-greet-actions {
+  padding: 12px 16px 14px 48px;
+  display: flex; gap: 8px;
+}
+.breeze-greet-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 13px; font-weight: 400;
+  font-family: 'HubSpot Sans','Inter',system-ui,sans-serif;
+  cursor: pointer;
+  border: 1px solid;
+  transition: background .1s, border-color .1s;
+}
+.breeze-greet-btn.primary {
+  background: #333333;
+  border-color: #333333;
+  color: #ffffff;
+}
+.breeze-greet-btn.primary:hover { background: #1a1a1a; border-color: #1a1a1a; }
+.breeze-greet-btn.secondary {
+  background: #ffffff;
+  border-color: #8a8a8a;
+  color: #141414;
+}
+.breeze-greet-btn.secondary:hover { background: #f5f5f5; border-color: #6b6b6b; }
+
+/* ── Breeze Chat Sidebar (M2) ───────────────────────────────────── */
+.breeze-chat-sidebar {
+  flex: 0 0 0;
+  width: 0;
+  min-width: 0;
+  max-width: 0;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #cccccc;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: flex-basis .28s cubic-bezier(.2,.8,.3,1),
+              max-width .28s cubic-bezier(.2,.8,.3,1),
+              width .28s cubic-bezier(.2,.8,.3,1),
+              opacity .2s ease .04s;
+  opacity: 0;
+  font-family: 'HubSpot Sans','Inter',system-ui,sans-serif;
+}
+.breeze-chat-sidebar.open {
+  flex: 0 0 380px;
+  width: 380px;
+  max-width: 380px;
+  opacity: 1;
+}
+
+.bcs-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+}
+.bcs-avatar {
+  width: 28px; height: 28px;
+  border-radius: 9999px;
+  background: #fff5ef;
+  border: 1px solid #e8832a;
+  display: flex; align-items: center; justify-content: center;
+  color: #e8832a; flex-shrink: 0;
+}
+.bcs-avatar svg { width: 14px; height: 14px; }
+.bcs-title {
+  font-size: 14px; font-weight: 500; color: #141414;
+  flex: 1; min-width: 0;
+}
+.bcs-hdr-btn {
+  width: 26px; height: 26px;
+  border: none; background: transparent;
+  color: #8a8a8a;
+  border-radius: 9999px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+  flex-shrink: 0;
+}
+.bcs-hdr-btn:hover { background: #f5f5f5; color: #141414; }
+
+.bcs-messages {
+  flex: 1; min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.bcs-thread {
+  flex: 1; min-height: 0;
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding: 16px 14px;
+}
+.bcs-thread[data-active="true"] { display: flex; }
+.bcs-thread::-webkit-scrollbar { width: 6px; }
+.bcs-thread::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+/* Back button in header (visible only when not on the Home thread) */
+.bcs-back {
+  width: 28px; height: 28px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  display: none;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  color: #141414;
+  transition: background .12s;
+  flex-shrink: 0;
+}
+.bcs-back:hover { background: #f5f5f5; }
+.bcs-back svg { width: 14px; height: 14px; }
+
+/* Hide avatar + show back when in a sub-thread */
+.breeze-chat-sidebar[data-active-thread="home"] .bcs-back { display: none; }
+.breeze-chat-sidebar[data-active-thread="home"] .bcs-avatar { display: flex; }
+.breeze-chat-sidebar:not([data-active-thread="home"]) .bcs-back { display: flex; }
+.breeze-chat-sidebar:not([data-active-thread="home"]) .bcs-avatar { display: none; }
+/* Suggestions visibility is now controlled by JS per-thread (hidden attribute). */
+
+/* Open-threads strip (between header and messages) */
+.bcs-threads-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+.bcs-threads-strip[hidden] { display: none; }
+.bcs-thread-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+  padding: 0 2px 0 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 9999px;
+  background: #f7f7f7;
+  font-size: 12px;
+  color: #141414;
+  cursor: pointer;
+  font-family: 'HubSpot Sans','Inter',system-ui,sans-serif;
+  transition: background .12s, border-color .12s;
+  user-select: none;
+}
+.bcs-thread-pill:hover { background: #ededed; border-color: #cccccc; }
+.bcs-thread-pill[data-active="true"] {
+  background: #141414;
+  border-color: #141414;
+  color: #ffffff;
+}
+.bcs-thread-pill[data-active="true"] .bcs-thread-pill-close { color: rgba(255,255,255,.7); }
+.bcs-thread-pill[data-active="true"] .bcs-thread-pill-close:hover { background: rgba(255,255,255,.18); color: #ffffff; }
+.bcs-thread-pill-label {
+  max-width: 140px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bcs-thread-pill-close {
+  width: 18px; height: 18px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: #8a8a8a;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  margin-left: 2px;
+}
+.bcs-thread-pill-close:hover { background: rgba(0,0,0,.08); color: #141414; }
+.bcs-thread-pill-close svg { width: 8px; height: 8px; }
+
+.bcs-msg {
+  display: flex; gap: 8px;
+  animation: bcsMsgIn .26s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes bcsMsgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.bcs-msg-avatar {
+  width: 24px; height: 24px;
+  border-radius: 9999px;
+  background: #fff5ef;
+  border: 1px solid #e8832a;
+  color: #e8832a;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.bcs-msg-avatar svg { width: 11px; height: 11px; }
+.bcs-msg-bubble {
+  background: #f7f7f7;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px; line-height: 1.5; color: #141414;
+  flex: 1; min-width: 0;
+}
+.bcs-msg-bubble p + p { margin-top: 6px; }
+.bcs-msg-bubble strong { font-weight: 500; }
+
+/* Card list inside chat — reuses .php-card visuals but stacks flush with chat */
+.bcs-card-list {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.bcs-card-list .php-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 14px;
+  cursor: default;
+  background: #ffffff;
+  opacity: 1;
+}
+.bcs-card-list .php-card:not(.php-card--hero) { opacity: 1; }
+.bcs-card-list .php-card-actions { display: none; }
+.bcs-card-list .php-card .php-tag { font-size: 11px; height: 22px; line-height: 22px; padding: 0 7px; }
+.bcs-card-list .php-card--hero { padding: 14px; gap: 10px; }
+.bcs-card-list .php-card--hero .php-badge-hero { background: #fcece6; border-color: #e8832a; color: #b65a13; }
+
+/* Suggestion stack above the composer — collapsable container */
+.bcs-suggestions {
+  flex-shrink: 0;
+  border-top: 1px solid #f0f0f0;
+}
+.bcs-suggestions-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  font-size: 11px; font-weight: 500;
+  color: #8a8a8a;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  cursor: pointer;
+  font-family: 'HubSpot Sans','Inter',system-ui,sans-serif;
+  transition: color .12s;
+}
+.bcs-suggestions-toggle:hover { color: #141414; }
+.bcs-suggestions-chevron {
+  width: 12px; height: 12px;
+  transition: transform .2s ease;
+  opacity: .8;
+}
+.bcs-suggestions.collapsed .bcs-suggestions-chevron { transform: rotate(-180deg); }
+
+.bcs-suggestions-list {
+  display: flex; flex-direction: column;
+  gap: 6px;
+  padding: 0 12px 10px;
+  max-height: 240px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height .26s cubic-bezier(.2,.8,.3,1),
+              padding-bottom .26s cubic-bezier(.2,.8,.3,1),
+              opacity .18s ease;
+}
+.bcs-suggestions.collapsed .bcs-suggestions-list {
+  max-height: 0;
+  padding-bottom: 0;
+  opacity: 0;
+}
+
+.bcs-suggestion-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid #cccccc;
+  background: #ffffff;
+  color: #141414;
+  font-size: 13px; font-weight: 400;
+  font-family: 'HubSpot Sans','Inter',system-ui,sans-serif;
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s, border-color .12s, transform .08s;
+}
+.bcs-suggestion-chip:hover { background: #f5f5f5; border-color: #8a8a8a; }
+.bcs-suggestion-chip:active { transform: scale(.99); }
+.bcs-suggestion-chip-icon { width: 14px; height: 14px; opacity: .7; flex-shrink: 0; }
+.bcs-suggestion-chip-trail {
+  width: 12px; height: 12px;
+  margin-left: auto;
+  opacity: .5;
+  flex-shrink: 0;
+}
+.bcs-suggestion-chip.primary {
+  background: #333333; border-color: #333333; color: #ffffff;
+}
+.bcs-suggestion-chip.primary .bcs-suggestion-chip-icon,
+.bcs-suggestion-chip.primary .bcs-suggestion-chip-trail { opacity: .9; }
+.bcs-suggestion-chip.primary:hover { background: #1a1a1a; border-color: #1a1a1a; }
+
+.bcs-composer {
+  flex-shrink: 0;
+  border-top: 1px solid #e8e8e8;
+  padding: 10px 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.bcs-composer-input {
+  flex: 1; min-width: 0;
+  height: 34px;
+  border: 1px solid #cccccc;
+  border-radius: 9999px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #ffffff;
+  color: #141414;
+  outline: none;
+  transition: border-color .12s;
+}
+.bcs-composer-input:focus { border-color: #8a8a8a; }
+.bcs-composer-send {
+  width: 34px; height: 34px;
+  border-radius: 9999px;
+  background: #333333; color: #ffffff;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .12s;
+}
+.bcs-composer-send:hover { background: #1a1a1a; }
+
+/* Hide FAB while chat is open */
+body.breeze-chat-active .breeze-fab { display: none; }
+body.breeze-chat-active #breezeGreetBubble { display: none !important; }
+
+/* ── JIT form components (used in Refine criteria + Find more threads) ── */
+.bcs-form {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-family: 'HubSpot Sans','Inter',system-ui,sans-serif;
+}
+.bcs-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Conditional zone — sections that appear/morph in response to other answers */
+.bcs-form-conditional {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  /* Reserve enough vertical space for the tallest variant + thinking state
+     so the rest of the form doesn't jump up and down. */
+  min-height: 220px;
+}
+.bcs-form-conditional::before {
+  content: '';
+  position: absolute;
+  top: -9px; left: 0; right: 0;
+  height: 1px;
+  background: #f0f0f0;
+}
+.bcs-form-conditional::after {
+  content: '';
+  position: absolute;
+  bottom: -9px; left: 0; right: 0;
+  height: 1px;
+  background: #f0f0f0;
+}
+.bcs-form-fading {
+  animation: bcsFormFadeIn .26s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes bcsFormFadeIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* "Breeze is generating" indicator while the JIT compute is happening */
+.bcs-form-thinking {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 0;
+  color: #8a8a8a;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .3px;
+  animation: bcsFormFadeIn .18s ease both;
+  flex: 1;
+}
+.bcs-form-thinking > svg {
+  width: 12px; height: 12px;
+  color: #141414;
+  animation: bcsThinkingSpin 1.6s linear infinite;
+}
+@keyframes bcsThinkingSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.bcs-form-thinking-dots { display: inline-flex; gap: 3px; }
+.bcs-form-thinking-dots span {
+  width: 4px; height: 4px;
+  border-radius: 9999px;
+  background: #8a8a8a;
+  animation: bcsThinkingPulse 1.2s infinite ease-in-out both;
+}
+.bcs-form-thinking-dots span:nth-child(2) { animation-delay: .15s; }
+.bcs-form-thinking-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes bcsThinkingPulse {
+  0%, 80%, 100% { opacity: .25; transform: scale(.85); }
+  40% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Sub-industries — generated below Industries when one is picked */
+.bcs-subind-zone {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 64px;
+}
+.bcs-subind-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.bcs-subind-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bcs-subind-group-name {
+  font-size: 11px;
+  color: #141414;
+  font-weight: 500;
+}
+.bcs-subind-group .bcs-form-chip {
+  font-size: 11px;
+  height: 24px;
+  padding: 0 9px;
+}
+
+/* Find more — candidate cards + add toggle + thread actions */
+.bcs-cand-zone {
+  display: flex;
+  flex-direction: column;
+  min-height: 140px;
+  position: relative;
+}
+.bcs-cand-list { display: flex; flex-direction: column; gap: 8px; }
+.bcs-cand-list .php-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 14px;
+  cursor: default;
+  background: #ffffff;
+  opacity: 1;
+  transition: border-color .15s, box-shadow .15s;
+}
+.bcs-cand-list .php-card .php-tag { font-size: 11px; height: 22px; line-height: 22px; padding: 0 7px; }
+.bcs-cand-list .php-card-header { align-items: center; }
+.bcs-cand-meta {
+  font-size: 11px;
+  color: #8a8a8a;
+  margin-top: -2px;
+}
+
+.bcs-cand-toggle {
+  margin-left: auto;
+  width: 28px; height: 28px;
+  border-radius: 9999px;
+  border: 1px solid #cccccc;
+  background: #ffffff;
+  color: #141414;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.bcs-cand-toggle:hover { background: #f5f5f5; border-color: #8a8a8a; }
+.bcs-cand-toggle svg { width: 12px; height: 12px; }
+.bcs-cand-card[data-selected="true"] {
+  border-color: #141414;
+  box-shadow: 0 0 0 1px #141414;
+}
+.bcs-cand-card[data-selected="true"] .bcs-cand-toggle {
+  background: #141414; border-color: #141414; color: #ffffff;
+}
+.bcs-cand-card[data-selected="true"] .bcs-cand-icon-add { display: none; }
+.bcs-cand-card[data-selected="true"] .bcs-cand-icon-check { display: block !important; }
+
+.bcs-thread-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  margin-top: 2px;
+}
+.bcs-thread-actions-status {
+  flex: 1;
+  font-size: 12px;
+  color: #8a8a8a;
+}
+.bcs-thread-actions .bcs-form-btn {
+  flex: 0 0 auto;
+  padding: 0 14px;
+  height: 30px;
+  font-size: 12px;
+}
+.bcs-thread-actions .bcs-form-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+/* Brief flash on rows just added to the index from a Breeze action */
+.idx-tr-just-added {
+  animation: idxRowJustAdded 2.6s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes idxRowJustAdded {
+  0%   { background-color: rgba(20,20,20,.10); }
+  60%  { background-color: rgba(20,20,20,.05); }
+  100% { background-color: transparent; }
+}
+
+/* Outreach thread — single active card-focus-block pinned at the bottom */
+.bcs-card-focus-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: bcsFormFadeIn .26s cubic-bezier(.2,.8,.3,1) both;
+}
+.bcs-context-marker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.bcs-context-marker::before,
+.bcs-context-marker::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e8e8e8;
+}
+.bcs-context-marker-label {
+  font-size: 11px;
+  color: #8a8a8a;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.bcs-inline-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-left: 32px; /* align with bot-bubble content */
+}
+.bcs-prompt-pill {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid #cccccc;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #141414;
+  font-size: 12px;
+  font-family: 'HubSpot Sans','Inter',system-ui,sans-serif;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.bcs-prompt-pill:hover { background: #f5f5f5; border-color: #8a8a8a; }
+
+/* Loading dots while Breeze "thinks" about a prompt */
+.bcs-msg-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 14px;
+  background: #f7f7f7;
+  border-radius: 12px;
+}
+.bcs-msg-dots span {
+  width: 5px; height: 5px;
+  border-radius: 9999px;
+  background: #8a8a8a;
+  animation: bcsThinkingPulse 1.4s infinite ease-in-out both;
+}
+.bcs-msg-dots span:nth-child(2) { animation-delay: .15s; }
+.bcs-msg-dots span:nth-child(3) { animation-delay: .3s; }
+
+.bcs-result-card {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #141414;
+}
+.bcs-result-card-hdr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #141414;
+  margin-bottom: 8px;
+}
+.bcs-result-card-hdr-title { flex: 1; min-width: 0; }
+/* Cancel out the focus-mode .fm-result-body padding so it nests cleanly in our compact card */
+.bcs-result-card .fm-result-body { padding: 0 !important; font-size: 12.5px; line-height: 1.55; color: #141414; }
+.bcs-result-card .fm-result-row,
+.bcs-result-card .fm-assoc-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;            /* override focus-mode's `margin: 0 -16px` extender */
+  padding: 6px 0;        /* keep things flush with the chat card padding */
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 12px;
+  cursor: default;
+  background: transparent !important;
+}
+.bcs-result-card .fm-result-row:first-child,
+.bcs-result-card .fm-assoc-item:first-child { padding-top: 0; }
+.bcs-result-card .fm-result-row:last-child,
+.bcs-result-card .fm-assoc-item:last-child { border-bottom: none; padding-bottom: 0; }
+.bcs-result-card .fm-result-row-label,
+.bcs-result-card .fm-assoc-type { color: #8a8a8a; }
+.bcs-result-card .fm-result-row-value,
+.bcs-result-card .fm-assoc-name { color: #141414; font-weight: 500; }
+.bcs-form-row-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+}
+.bcs-form-row-label {
+  font-size: 11px; font-weight: 500;
+  color: #8a8a8a;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.bcs-form-row-readout {
+  font-size: 12px; font-weight: 500;
+  color: #141414;
+  font-variant-numeric: tabular-nums;
+}
+.bcs-form-value-readout {
+  font-size: 12px; font-weight: 500;
+  color: #141414;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chip group (multi-select) */
+.bcs-chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.bcs-form-chip {
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid #cccccc;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #141414;
+  font-size: 12px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.bcs-form-chip:hover { background: #f5f5f5; border-color: #8a8a8a; }
+.bcs-form-chip.selected {
+  background: #141414;
+  border-color: #141414;
+  color: #ffffff;
+}
+
+/* Range slider */
+.bcs-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  cursor: pointer;
+  outline: none;
+  margin: 6px 0 4px;
+}
+.bcs-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  background: #ffffff;
+  border: 2px solid #141414;
+  border-radius: 9999px;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
+}
+.bcs-range::-moz-range-thumb {
+  width: 16px; height: 16px;
+  background: #ffffff;
+  border: 2px solid #141414;
+  border-radius: 9999px;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
+}
+.bcs-range:active::-webkit-slider-thumb { cursor: grabbing; }
+
+/* Radios (single-select list) */
+.bcs-radio-group { display: flex; flex-direction: column; gap: 2px; }
+.bcs-radio {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: #141414;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.bcs-radio input { position: absolute; opacity: 0; pointer-events: none; }
+.bcs-radio-mark {
+  width: 14px; height: 14px;
+  border-radius: 9999px;
+  border: 1.5px solid #cccccc;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: border-color .12s;
+}
+.bcs-radio-mark::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 9999px;
+  background: #141414;
+  transform: scale(0);
+  transition: transform .12s;
+}
+.bcs-radio input:checked ~ .bcs-radio-mark { border-color: #141414; }
+.bcs-radio input:checked ~ .bcs-radio-mark::before { transform: scale(1); }
+
+/* Toggles (multi-select checkboxes) */
+.bcs-toggle-group { display: flex; flex-direction: column; gap: 2px; }
+.bcs-toggle {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: #141414;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.bcs-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.bcs-toggle-mark {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid #cccccc;
+  background: #ffffff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: border-color .12s, background .12s;
+}
+.bcs-toggle-mark svg {
+  width: 10px; height: 10px;
+  color: #ffffff;
+  opacity: 0;
+  transition: opacity .12s;
+}
+.bcs-toggle input:checked ~ .bcs-toggle-mark {
+  background: #141414;
+  border-color: #141414;
+}
+.bcs-toggle input:checked ~ .bcs-toggle-mark svg { opacity: 1; }
+.bcs-toggle-text { flex: 1; }
+
+/* Segmented control (single-select) */
+.bcs-segmented {
+  display: flex;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 3px;
+}
+.bcs-segment {
+  flex: 1;
+  height: 28px;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .12s, color .12s, box-shadow .12s;
+  white-space: nowrap;
+}
+.bcs-segment:hover { color: #141414; }
+.bcs-segment.selected {
+  background: #ffffff;
+  color: #141414;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+
+/* Action row (used inline for the final summary) */
+.bcs-form-actions {
+  display: flex;
+  gap: 8px;
+}
+.bcs-form-btn {
+  flex: 1;
+  height: 34px;
+  border-radius: 9999px;
+  border: 1px solid #cccccc;
+  background: #ffffff;
+  color: #141414;
+  font-size: 13px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, transform .08s;
+}
+.bcs-form-btn:hover { background: #f5f5f5; border-color: #8a8a8a; }
+.bcs-form-btn:active { transform: scale(.99); }
+.bcs-form-btn.primary {
+  background: #141414;
+  border-color: #141414;
+  color: #ffffff;
+}
+.bcs-form-btn.primary:hover { background: #333333; border-color: #333333; }
+
+/* User-side message bubble (right-aligned, monotone) */
+.bcs-msg.user { flex-direction: row-reverse; }
+.bcs-msg.user .bcs-msg-avatar { display: none; }
+.bcs-msg.user .bcs-msg-bubble-user {
+  background: #141414;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 80%;
+  word-break: break-word;
+}
+
+/* Step row — widget container outside a bubble, left-indented to align with bot bubbles */
+.bcs-step {
+  padding-left: 32px; /* matches msg-avatar (24) + gap (8) */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bcs-step-continue {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 14px 0 12px;
+  background: #141414;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .12s, transform .08s;
+}
+.bcs-step-continue:hover { background: #333333; }
+.bcs-step-continue:active { transform: scale(.98); }
+.bcs-step-continue::after {
+  content: '→';
+  font-size: 12px;
+  margin-left: 2px;
+  opacity: .9;
+}
+
+/* Completed widget state — shown but inert */
+.bcs-segmented.completed,
+.bcs-chip-group.completed,
+.bcs-radio-group.completed,
+.bcs-toggle-group.completed,
+.bcs-range-row.completed { pointer-events: none; opacity: .6; }
+.bcs-range-row {
+  display: flex; align-items: center; gap: 12px;
+}
+.bcs-range-row .bcs-range { flex: 1; }
+.bcs-range-row .bcs-form-value-readout {
+  font-size: 12px; font-weight: 500;
+  color: #141414;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Inline summary list inside a bot bubble */
+.bcs-bubble-summary {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #555;
+  line-height: 1.6;
+}
+
+/* ── M3: Focus mode overlay pinned next to Breeze chat sidebar ─── */
+/* Layout offsets: 64px nav + 16px main padding + 380px chat + 16px gap = 476px from left.
+   Top: 44px shell topbar + 16px main padding = 60px. Right/bottom = 16px main padding. */
+#focusModeOverlay.bcs-mode {
+  inset: 60px 16px 16px 476px;
+  padding: 0;
+  background: transparent;
+  display: flex;
+  overflow: hidden;
+  pointer-events: none; /* let chat sidebar still receive events through transparent areas */
+  transition: left .28s cubic-bezier(.2,.8,.3,1);
+}
+/* When the chat sidebar closes while focus mode is open, expand the overlay
+   leftward to fill the freed space. */
+#focusModeOverlay.bcs-mode.full-width { left: 80px; }
+#focusModeOverlay.bcs-mode > * { pointer-events: auto; }
+#focusModeOverlay.bcs-mode .fm-sidebar { display: none !important; }
+#focusModeOverlay.bcs-mode .fm-group {
+  margin: 0;
+  max-width: none;
+  width: 100%;
+  height: 100%;
+  gap: 0;
+  padding: 0; /* override .fm-group's default 24px so modal fills the overlay edge-to-edge */
+}
+/* Hide focus-mode's own chat input and omnibar — chat lives in the Breeze sidebar */
+#focusModeOverlay.bcs-mode .fm-omnibar-anchor,
+#focusModeOverlay.bcs-mode .fm-chat-panel { display: none !important; }
+/* Reclaim the bottom padding the omnibar used to anchor */
+#focusModeOverlay.bcs-mode .fm-context-scroll { padding-bottom: 24px; }
+#focusModeOverlay.bcs-mode .fm-modal {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  /* Use transitions (not animations) so JS-driven slide in/out for thread
+     navigation can take effect — animations would override inline styles. */
+  animation: none;
+  transition: transform .4s cubic-bezier(.2,.8,.3,1), opacity .25s ease;
+}
+
+/* In bcs-mode, the entire context card is clickable to select it */
+#focusModeOverlay.bcs-mode .fm-card { cursor: pointer; }
+#focusModeOverlay.bcs-mode .fm-card:hover { border-color: #8a8a8a; }
+
+/* The index panel fades behind the outreach modal — using opacity (not
+   display:none) so it can transition smoothly when sliding back in. */
+.white-surface { transition: opacity .25s ease; }
+body.bcs-mode-fading .white-surface,
+body.bcs-mode-active .white-surface {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Override 680px-fixed email panel — use 45/55 split for context/email */
+#focusModeOverlay.bcs-mode .fm-body {
+  position: relative;
+}
+#focusModeOverlay.bcs-mode .fm-left {
+  flex: 45 1 0;
+  min-width: 0;
+  container-type: inline-size; /* enables container query below */
+  transition: flex-grow .28s cubic-bezier(.2,.8,.3,1),
+              padding .28s cubic-bezier(.2,.8,.3,1),
+              opacity .2s ease;
+}
+/* When the context panel becomes too narrow, stack the two card columns */
+@container (max-width: 540px) {
+  #focusModeOverlay.bcs-mode .fm-context-scroll {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #focusModeOverlay.bcs-mode .fm-context-col {
+    width: 100%;
+    flex: 0 0 auto;
+  }
+}
+#focusModeOverlay.bcs-mode .fm-right {
+  flex: 55 1 0;
+  width: auto;
+  min-width: 0;
+  transition: flex-grow .28s cubic-bezier(.2,.8,.3,1);
+}
+
+/* Collapsed context state */
+#focusModeOverlay.bcs-mode .fm-modal.context-collapsed .fm-left {
+  flex: 0 0 0;
+  padding-top: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+#focusModeOverlay.bcs-mode .fm-modal.context-collapsed .fm-right {
+  flex: 1 1 100%;
+}
+
+/* Context label becomes a flex row with the toggle */
+#focusModeOverlay.bcs-mode .fm-context-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Collapse toggle in the context-label */
+.fm-context-toggle {
+  display: none;
+  width: 24px; height: 24px;
+  border-radius: 9999px;
+  border: 1px solid #cccccc;
+  background: #ffffff;
+  color: #8a8a8a;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+  padding: 0;
+}
+#focusModeOverlay.bcs-mode .fm-context-toggle { display: inline-flex; }
+.fm-context-toggle:hover {
+  background: #f5f5f5;
+  border-color: #8a8a8a;
+  color: #141414;
+}
+.fm-context-toggle svg { width: 11px; height: 11px; }
+
+/* Floating "Context" chip to re-open when collapsed */
+.fm-context-show {
+  display: none;
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  z-index: 5;
+  height: 28px;
+  padding: 0 12px 0 8px;
+  border-radius: 9999px;
+  border: 1px solid #cccccc;
+  background: #ffffff;
+  color: #141414;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'HubSpot Sans','Inter',system-ui,sans-serif;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  transition: background .12s, border-color .12s;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+}
+.fm-context-show svg { width: 12px; height: 12px; }
+.fm-context-show:hover { background: #f5f5f5; border-color: #8a8a8a; }
+#focusModeOverlay.bcs-mode .fm-modal.context-collapsed .fm-context-show {
+  display: inline-flex;
+  animation: bcsChipIn .2s ease both;
+}
+@keyframes bcsChipIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Contact-tab filter dropdown — sits to the LEFT of the first tab */
+.fm-tab-filter { position: relative; margin-right: 16px; padding-bottom: 4px; }
+.fm-tab-filter-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 28px;
+  padding: 0 10px 0 12px;
+  background: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 9999px;
+  font-size: 13px; font-weight: 400;
+  color: #141414;
+  font-family: 'HubSpot Sans','Inter',system-ui,sans-serif;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.fm-tab-filter-btn:hover { background: #f5f5f5; border-color: #8a8a8a; }
+.fm-tab-filter-btn svg { width: 10px; height: 10px; color: #8a8a8a; }
+.fm-tab-filter-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 160px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(20,20,20,.12);
+  overflow: hidden;
+  padding: 4px;
+}
+.fm-tab-filter.open .fm-tab-filter-menu { display: block; }
+.fm-tab-filter-item {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-family: inherit;
+  color: #141414;
+  cursor: pointer;
+  border-radius: 8px;
+  text-align: left;
+}
+.fm-tab-filter-item:hover { background: #f5f5f5; }
+.fm-tab-filter-item-check {
+  width: 14px; height: 14px; opacity: 0; color: #141414;
+}
+.fm-tab-filter-item.active .fm-tab-filter-item-check { opacity: 1; }
+.fm-tab-filter-item.active { font-weight: 500; }
+
 /* ── Deal Created Toast ─────────────────────────────────────────── */
 #dealToast {
   position: fixed;
@@ -2050,6 +3274,128 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
 
   <!-- Main -->
   <div class="main-area">
+
+    <!-- Breeze chat sidebar (M2) -->
+    <aside class="breeze-chat-sidebar" id="breezeChatSidebar" aria-label="Breeze" data-active-thread="home">
+      <div class="bcs-header">
+        <button class="bcs-back" id="bcsBack" aria-label="Back to Breeze chat" title="Back">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L5 7l4 4"/></svg>
+        </button>
+        <span class="bcs-avatar">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 0L12.2 7.8L20 10L12.2 12.2L10 20L7.8 12.2L0 10L7.8 7.8Z"/></svg>
+        </span>
+        <span class="bcs-title" id="bcsTitle">Breeze</span>
+        <button class="bcs-hdr-btn" id="breezeChatClose" aria-label="Close" title="Close">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <!-- Open-threads strip -->
+      <div class="bcs-threads-strip" id="bcsThreadsStrip" hidden></div>
+
+      <div class="bcs-messages" id="breezeChatMessages">
+
+        <!-- Home thread -->
+        <div class="bcs-thread" data-thread="home" data-active="true">
+
+        <!-- Intro message -->
+        <div class="bcs-msg">
+          <span class="bcs-msg-avatar">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 0L12.2 7.8L20 10L12.2 12.2L10 20L7.8 12.2L0 10L7.8 7.8Z"/></svg>
+          </span>
+          <div class="bcs-msg-bubble">
+            <p>I found <strong>2 new companies</strong> that look like a strong fit for your roster.</p>
+            <p>They match your top-performing accounts on <strong>industry, size, and recent growth signals</strong>.</p>
+          </div>
+        </div>
+
+        <!-- Recommendations message with cards -->
+        <div class="bcs-msg">
+          <span class="bcs-msg-avatar">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 0L12.2 7.8L20 10L12.2 12.2L10 20L7.8 12.2L0 10L7.8 7.8Z"/></svg>
+          </span>
+          <div class="bcs-msg-bubble" style="background:transparent;padding:0;">
+            <div class="bcs-card-list">
+
+              <div class="php-card php-card--hero">
+                <div class="php-card-top">
+                  <div class="php-badge-hero-row"><span class="php-badge-hero">Top match</span></div>
+                  <div class="php-card-header">
+                    <div class="php-avatar" style="background:#daefe1">N</div>
+                    <span class="php-company-name">Nike</span>
+                  </div>
+                  <p class="php-desc">Researching growth-related topics and launching new products following recent funding.</p>
+                </div>
+                <div class="php-tags">
+                  <span class="php-tag" style="background:#efeefd">Research signal</span>
+                  <span class="php-tag" style="background:#fcf6e6">Funding event</span>
+                  <span class="php-tag" style="background:#daefe1">Enterprise</span>
+                </div>
+              </div>
+
+              <div class="php-card">
+                <div class="php-card-header">
+                  <div class="php-avatar" style="background:#fcece6">R</div>
+                  <span class="php-company-name">Reddit</span>
+                </div>
+                <p class="php-desc">Active research into monetization and new executive hires.</p>
+                <div class="php-tags">
+                  <span class="php-tag" style="background:#fcf6e6">Visitor intent</span>
+                  <span class="php-tag" style="background:#fcebf2">Hire signal</span>
+                  <span class="php-tag" style="background:#daefe1">Enterprise</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Closing prompt -->
+        <div class="bcs-msg">
+          <span class="bcs-msg-avatar">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 0L12.2 7.8L20 10L12.2 12.2L10 20L7.8 12.2L0 10L7.8 7.8Z"/></svg>
+          </span>
+          <div class="bcs-msg-bubble">
+            Want me to do anything next?
+          </div>
+        </div>
+
+        </div><!-- /home thread -->
+
+      </div>
+
+      <!-- Suggestion chips (collapsable, stacked above the composer) -->
+      <div class="bcs-suggestions" id="bcsSuggestions">
+        <button class="bcs-suggestions-toggle" id="bcsSuggestionsToggle" type="button" aria-expanded="true" aria-controls="bcsSuggestionsList">
+          <span>Suggestions</span>
+          <svg class="bcs-suggestions-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5L6 4.5L9 7.5"/></svg>
+        </button>
+        <div class="bcs-suggestions-list" id="bcsSuggestionsList">
+          <button class="bcs-suggestion-chip" id="bcsFindMore">
+            <svg class="bcs-suggestion-chip-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="4.5"/><path d="m9.5 9.5 3 3"/></svg>
+            <span>Find more like this</span>
+            <svg class="bcs-suggestion-chip-trail" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3l3 3-3 3"/></svg>
+          </button>
+          <button class="bcs-suggestion-chip" id="bcsRefine">
+            <svg class="bcs-suggestion-chip-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="4" x2="11" y2="4"/><line x1="5" y1="7" x2="9" y2="7"/><line x1="6.5" y1="10" x2="7.5" y2="10"/></svg>
+            <span>Refine criteria</span>
+            <svg class="bcs-suggestion-chip-trail" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3l3 3-3 3"/></svg>
+          </button>
+          <button class="bcs-suggestion-chip primary" id="bcsStartOutreach">
+            <svg class="bcs-suggestion-chip-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="7" x2="12" y2="7"/><polyline points="8 3 12 7 8 11"/></svg>
+            <span>Start outreach</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bcs-composer">
+        <input class="bcs-composer-input" placeholder="Ask Breeze anything…" />
+        <button class="bcs-composer-send" aria-label="Send">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
+      </div>
+    </aside>
+
     <div class="white-surface">
       <div class="idx-page">
 
@@ -2086,10 +3432,6 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
                 <button class="idx-actions-menu-item" role="menuitem" data-view-mode="data-agent">
                   <span class="idx-actions-menu-item-bullet"></span>
                   <span>Data Agent</span>
-                </button>
-                <button class="idx-actions-menu-item" role="menuitem" data-view-mode="footer-widget">
-                  <span class="idx-actions-menu-item-bullet"></span>
-                  <span>Footer widget</span>
                 </button>
               </div>
             </div>
@@ -2440,22 +3782,6 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
             <span class="idx-footer-count-chip" id="idx-count">12</span>
             companies in view
           </div>
-          <!-- Footer Widget pill (overflow variant) -->
-          <div class="footer-widget-wrap layout-hidden" id="footerWidget">
-            <div class="fw" id="fw" data-state="closed">
-              <div class="fw-switcher" id="fwSwitcher">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.005C8.276 1.005 8.5 1.229 8.5 1.505C8.5 4.819 11.186 7.505 14.5 7.505C14.776 7.505 15 7.729 15 8.005C15 8.281 14.776 8.505 14.5 8.505C11.186 8.505 8.5 11.191 8.5 14.505C8.5 14.781 8.276 15.005 8 15.005C7.724 15.005 7.5 14.781 7.5 14.505C7.5 11.191 4.814 8.505 1.5 8.505C1.224 8.505 1 8.281 1 8.005C1 7.729 1.224 7.505 1.5 7.505C4.814 7.505 7.5 4.819 7.5 1.505C7.5 1.229 7.724 1.005 8 1.005Z" fill="#666"/></svg>
-                <span class="fw-label" id="fwLabel">Recommended</span>
-                <svg class="fw-caret" width="12" height="12" viewBox="0 0 32 32" fill="none"><path d="M24.28 11.3a1 1 0 0 1 1.42 1.42L16 22.42 6.3 12.72a1 1 0 0 1 1.4-1.42L16 19.58l8.28-8.28z" fill="#666"/></svg>
-              </div>
-              <div class="fw-scroll-area" id="fwScrollArea"></div>
-              <div class="fw-right-anchor">
-                <button class="fw-retract-btn" id="fwRetract" data-tip="Retract" data-tip-pos="above">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6.499 9C6.774 9 6.999 9.225 6.999 9.5V13.5C6.999 13.775 6.774 14 6.499 14C6.224 14 5.999 13.775 5.999 13.5V10.705L2.849 13.855C2.65 14.054 2.334 14.054 2.144 13.855C1.949 13.66 1.949 13.345 2.144 13.15L5.294 10H2.499C2.224 10 1.999 9.775 1.999 9.5C1.999 9.225 2.224 9 2.499 9H6.499Z" fill="#666"/><path d="M9.499 2C9.774 2 9.999 2.225 9.999 2.5V5.295L13.144 2.15C13.339 1.955 13.654 1.955 13.849 2.15C14.044 2.345 14.044 2.66 13.849 2.855L10.704 6H13.499C13.774 6 13.999 6.225 13.999 6.5C13.999 6.775 13.774 7 13.499 7H9.499C9.224 7 8.999 6.775 8.999 6.5V2.5C8.999 2.225 9.224 2 9.499 2Z" fill="#666"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
           <div class="idx-footer-actions" id="footerActions"></div>
         </div>
 
@@ -2465,6 +3791,29 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
 </div><!-- /home-shell-content -->
 </div><!-- /home-shell-row -->
 </div><!-- /home-shell-root -->
+
+<!-- Breeze FAB -->
+<button class="breeze-fab has-pulse" id="breezeFab" aria-label="Breeze" title="Breeze">
+  <svg viewBox="0 0 20 20" fill="#e8832a" stroke="none"><path d="M10 0L12.2 7.8L20 10L12.2 12.2L10 20L7.8 12.2L0 10L7.8 7.8Z"/></svg>
+</button>
+
+<!-- Breeze greeting bubble -->
+<div id="breezeGreetBubble" role="dialog" aria-label="Breeze greeting">
+  <div class="breeze-greet-head">
+    <span class="breeze-greet-avatar">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 0L12.2 7.8L20 10L12.2 12.2L10 20L7.8 12.2L0 10L7.8 7.8Z"/></svg>
+    </span>
+    <span class="breeze-greet-name">Breeze</span>
+    <button class="breeze-greet-close" id="breezeGreetClose" aria-label="Dismiss">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="breeze-greet-body">I found 2 new companies for you. Want to see them?</div>
+  <div class="breeze-greet-actions">
+    <button class="breeze-greet-btn secondary" id="breezeGreetNo">No</button>
+    <button class="breeze-greet-btn primary" id="breezeGreetYes">Yes</button>
+  </div>
+</div>
 
 <div class="layout-menu" id="layoutMenu">
   <button class="layout-menu-item active" data-mode="default">Default</button>
@@ -3171,8 +4520,8 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
   const HIGHLIGHT_MAP = {
     'Nike':                  { prospect: 'hero' },
     'Reddit':                { prospect: 'high' },
-    'RiverStone Builders':   { prospect: 'high' },
-    'Southland Industries':  { prospect: 'high' },
+    'RiverStone Builders':   {},
+    'Southland Industries':  {},
     'Fairview Contractors':  {},
     'Larkspur Logistics':    {},
     'Granite Peak Advisors': { data: true },
@@ -3794,524 +5143,9 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
     cell.appendChild(btn);
   });
 
-  /* ─── Footer Widget (overflow variant) — runs inside main IIFE so it can
-         see applyHighlight, HIGHLIGHT_MAP, origRowOrder, activeMode. ─── */
-
-  /* Prospect card data — keys MUST match company names rendered in the table */
-  const PROSPECT_CARD_DATA = {
-    'Nike':                  { desc: 'Hiring surged 28% in the last 90 days, signaling active growth.', tags: [{label:'Visitor',bg:'#e1f2fb'},{label:'Research',bg:'#efeefd'},{label:'Funding',bg:'#daefe1'},{label:'+2',overflow:true}] },
-    'Reddit':                { desc: 'Website traffic spiked this month after launching new services.', tags: [{label:'Visitor',bg:'#e1f2fb'},{label:'Web traffic',bg:'#fcece6'},{label:'Product launch',bg:'#fcebf2'},{label:'+1',overflow:true}] },
-    'RiverStone Builders':   { desc: 'Opened a new office this quarter, indicating expansion activity.', tags: [{label:'Visitor',bg:'#e1f2fb'},{label:'Physical expansion',bg:'#fcf6e6'}] },
-    'Southland Industries':  { desc: 'Pricing page visited 3\u00d7 this week — strong research signal.', tags: [{label:'Visitor',bg:'#e1f2fb'},{label:'Research intent',bg:'#efeefd'}] },
-  };
-
-  /* Per-category company sets — each FW cell highlights its OWN list of rows */
-  const CATEGORY_COMPANIES = {
-    prospect:   { hero: ['Nike'], high: ['Reddit','RiverStone Builders','Southland Industries'] },
-    duplicates: { mark: ['Maplewood Legal','Tidewater Partners','Driftwood Marketing','Patagonia Outfitters'] },
-    missing:    { mark: ['RiverStone Builders','Overland Freight','Larkspur Logistics','Kingfisher Bio','Yellowstone Energy','Blackwell Partners','Silverline Media','Redwood Analytics'] },
-    smartfill:  { mark: ['Granite Peak Advisors','Maplewood Legal','Driftwood Marketing','Copperfield Labs','Aurora Robotics','Meridian Capital'] },
-    columns:    { mark: [] },
-  };
-
-  /* Highlight rows for a specific FW category (replaces generic applyHighlight) */
-  function applyCategoryHighlight(catId) {
-    const hlClasses = ['hl-prospect-hero','hl-prospect-high','hl-prospect-mid','hl-prospect-low','hl-data-missing','hl-dimmed'];
-    if (!catId) {
-      document.querySelectorAll('.idx-tr').forEach(row => hlClasses.forEach(c => row.classList.remove(c)));
-      origRowOrder.forEach((rows, tbody) => rows.forEach(r => tbody.appendChild(r)));
-      document.querySelectorAll('.idx-table').forEach(t => t.classList.remove('prospect-mode'));
-      __syncProspectOverlay(false);
-      activeMode = null;
-      return;
-    }
-    const cfg = CATEGORY_COMPANIES[catId];
-    if (!cfg) return;
-    const heroSet = new Set(cfg.hero || []);
-    const highSet = new Set(cfg.high || []);
-    const markSet = new Set(cfg.mark || []);
-    document.querySelectorAll('.idx-tr').forEach(row => {
-      hlClasses.forEach(c => row.classList.remove(c));
-      const name = row.querySelector('.idx-co-name-primary')?.textContent.trim();
-      if (heroSet.has(name))      row.classList.add('hl-prospect-hero');
-      else if (highSet.has(name)) row.classList.add('hl-prospect-high');
-      else if (markSet.has(name)) row.classList.add('hl-data-missing');
-      else                        row.classList.add('hl-dimmed');
-    });
-    const sortScore = row => {
-      if (row.classList.contains('hl-prospect-hero')) return 0;
-      if (row.classList.contains('hl-prospect-high')) return 1;
-      if (row.classList.contains('hl-data-missing'))  return 1;
-      return 2;
-    };
-    document.querySelectorAll('.idx-table tbody').forEach(tbody => {
-      Array.from(tbody.querySelectorAll('.idx-tr'))
-        .sort((a, b) => sortScore(a) - sortScore(b))
-        .forEach(r => tbody.appendChild(r));
-    });
-    activeMode = (catId === 'prospect') ? 'prospect' : 'data';
-    // Prospect-only: grow row height + show inline overlay panel
-    if (catId === 'prospect') {
-      __ensureProspectOverlay();
-      document.querySelectorAll('.idx-table').forEach(t => t.classList.add('prospect-mode'));
-      __syncProspectOverlay(true);
-    } else {
-      document.querySelectorAll('.idx-table').forEach(t => t.classList.remove('prospect-mode'));
-      __syncProspectOverlay(false);
-    }
-  }
-
-  /* Build the per-row prospect overlay column (idempotent) */
-  let __prospectOverlayBuilt = false;
-  function __ensureProspectOverlay() {
-    if (__prospectOverlayBuilt) return;
-    document.querySelectorAll('.idx-table').forEach(table => {
-      if (!table.querySelector('thead .prospect-overlay-th')) {
-        const th = document.createElement('th');
-        th.className = 'idx-th prospect-overlay-th';
-        table.querySelector('thead tr').appendChild(th);
-      }
-    });
-    document.querySelectorAll('.idx-table tbody tr.idx-tr').forEach(row => {
-      if (row.querySelector('.prospect-overlay-td')) return;
-      const name = row.querySelector('.idx-co-name-primary')?.textContent.trim();
-      const data = PROSPECT_CARD_DATA[name];
-      const td = document.createElement('td');
-      td.className = 'idx-td prospect-overlay-td';
-      if (data) {
-        const tagsHtml = data.tags.map(t =>
-          `<span class="prospect-overlay-tag${t.overflow ? ' prospect-overlay-tag-overflow' : ''}"${t.overflow ? '' : ` style="background:${t.bg}"`}>${t.label}</span>`
-        ).join('');
-        td.innerHTML = `<div class="prospect-overlay-card"><p class="prospect-overlay-desc">${data.desc}</p><div class="prospect-overlay-tags">${tagsHtml}</div><div class="prospect-overlay-actions"><button class="prospect-overlay-outreach">Start outreach</button><button class="prospect-overlay-dismiss">Dismiss</button></div></div>`;
-        td.querySelector('.prospect-overlay-outreach').addEventListener('click', e => { e.stopPropagation(); if (typeof openFocusMode === 'function') openFocusMode(); });
-        td.querySelector('.prospect-overlay-dismiss').addEventListener('click', e => { e.stopPropagation(); dismissProspectRow(row, name); });
-      } else {
-        td.classList.add('prospect-overlay-td--empty');
-      }
-      row.appendChild(td);
-    });
-    __prospectOverlayBuilt = true;
-  }
-
-  /* Pin overlay column to right side of viewport when table scrolls horizontally */
-  function __syncProspectOverlay(active) {
-    document.querySelectorAll('.idx-table-wrap').forEach(wrap => {
-      if (wrap._overlaySync) {
-        wrap.removeEventListener('scroll', wrap._overlaySync);
-        delete wrap._overlaySync;
-      }
-      if (active) {
-        const table = wrap.querySelector('.idx-table');
-        if (!table) return;
-        const sync = () => {
-          const tx = wrap.scrollLeft + wrap.clientWidth - table.offsetWidth;
-          wrap.querySelectorAll('.prospect-overlay-th,.prospect-overlay-td').forEach(el => {
-            el.style.transform = `translateX(${tx}px)`;
-          });
-        };
-        wrap._overlaySync = sync;
-        wrap.addEventListener('scroll', sync);
-        requestAnimationFrame(() => setTimeout(sync, 220));
-      } else {
-        wrap.querySelectorAll('.prospect-overlay-th,.prospect-overlay-td').forEach(el => el.style.transform = '');
-      }
-    });
-  }
-
-  function buildProspectOverlayCells() {
-    document.querySelectorAll('.idx-table').forEach(table => {
-      const th = document.createElement('th');
-      th.className = 'idx-th prospect-overlay-th';
-      table.querySelector('thead tr').appendChild(th);
-    });
-    document.querySelectorAll('.idx-table tbody tr.idx-tr').forEach(row => {
-      const name = row.querySelector('.idx-co-name-primary')?.textContent.trim();
-      const data = PROSPECT_CARD_DATA[name];
-      const td = document.createElement('td');
-      td.className = 'idx-td prospect-overlay-td';
-      if (data) {
-        const tagsHtml = data.tags.map(t =>
-          `<span class="prospect-overlay-tag${t.overflow ? ' prospect-overlay-tag-overflow' : ''}"${t.overflow ? '' : ` style="background:${t.bg}"`}>${t.label}</span>`
-        ).join('');
-        td.innerHTML = `<div class="prospect-overlay-card"><p class="prospect-overlay-desc">${data.desc}</p><div class="prospect-overlay-tags">${tagsHtml}</div><div class="prospect-overlay-actions"><button class="prospect-overlay-outreach">Start outreach</button><button class="prospect-overlay-dismiss">Dismiss</button></div></div>`;
-        td.querySelector('.prospect-overlay-outreach').addEventListener('click', e => { e.stopPropagation(); openFocusMode(); });
-        td.querySelector('.prospect-overlay-dismiss').addEventListener('click', e => { e.stopPropagation(); dismissProspectRow(row, name); });
-      } else {
-        td.classList.add('prospect-overlay-td--empty');
-      }
-      row.appendChild(td);
-    });
-  }
-
-  let _fwCollapseCallback = null;
-
-  function dismissProspectRow(row, name) {
-    if (HIGHLIGHT_MAP[name]) delete HIGHLIGHT_MAP[name].prospect;
-    row.classList.remove('hl-prospect-hero', 'hl-prospect-high');
-    row.classList.add('hl-dimmed');
-    row.querySelector('.prospect-overlay-td')?.classList.add('prospect-overlay-td--empty');
-    const tbody = row.closest('tbody');
-    if (tbody) {
-      const remaining = Array.from(tbody.querySelectorAll('.idx-tr.hl-prospect-hero, .idx-tr.hl-prospect-high'));
-      if (remaining.length > 0) remaining[remaining.length - 1].after(row);
-    }
-    if (!document.querySelector('.idx-tr.hl-prospect-hero, .idx-tr.hl-prospect-high')) {
-      _fwCollapseCallback?.();
-    }
-  }
-
-  function buildCardsTray(categoryId, onAllDismissed) {
-    const tray = document.getElementById('fwCardsTray');
-    tray.innerHTML = '';
-    const AVATAR_COLORS = {
-      'Horizonyte':'#daefe1','Northwood Builders':'#e1f2fb',
-      'RiverStone Builders':'#fcf6e6','Southland Industries':'#efeefd','Fairview Contractors':'#fcebf2',
-    };
-    if (categoryId === 'prospect') {
-      Object.entries(PROSPECT_CARD_DATA).forEach(([name, data]) => {
-        const tier = HIGHLIGHT_MAP[name]?.prospect;
-        const card = document.createElement('div');
-        card.className = 'php-card' + (tier === 'hero' ? ' php-card--hero' : '');
-        const tagsHtml = data.tags.map(t =>
-          `<span class="php-tag${t.overflow?' php-tag-overflow':''}"${t.overflow?'':` style="background:${t.bg}"`}>${t.label}</span>`
-        ).join('');
-        card.innerHTML = `<div class="php-card-top">${tier==='hero'?'<div class="php-badge-hero-row"><span class="php-badge-hero">Top prospect</span></div>':''}<div class="php-card-header"><div class="php-avatar" style="background:${AVATAR_COLORS[name]||'#e8e8e8'}">${name[0]}</div><span class="php-company-name">${name}</span></div><p class="php-desc">${data.desc}</p></div><div class="php-tags">${tagsHtml}</div><div class="php-card-actions"><button class="php-outreach-btn">Start outreach</button><button class="php-dismiss-btn">Dismiss</button></div>`;
-        const hlClass = tier === 'hero' ? 'hl-prospect-hero' : 'hl-prospect-high';
-        card.addEventListener('mouseenter', () => {
-          document.querySelectorAll('.idx-tr').forEach(r => {
-            if (r.querySelector('.idx-co-name-primary')?.textContent.trim() === name) r.classList.add(hlClass);
-          });
-        });
-        card.addEventListener('mouseleave', () => {
-          document.querySelectorAll('.idx-tr').forEach(r => {
-            if (r.querySelector('.idx-co-name-primary')?.textContent.trim() === name) r.classList.remove('hl-prospect-hero', 'hl-prospect-high');
-          });
-        });
-        card.querySelector('.php-outreach-btn').addEventListener('click', e => { e.stopPropagation(); openFocusMode(); });
-        card.querySelector('.php-dismiss-btn').addEventListener('click', e => {
-          e.stopPropagation();
-          document.querySelectorAll('.idx-tr').forEach(r => {
-            if (r.querySelector('.idx-co-name-primary')?.textContent.trim() === name) dismissProspectRow(r, name);
-          });
-          card.remove();
-          if (onAllDismissed && tray.querySelectorAll('.php-card').length === 0) onAllDismissed();
-        });
-        tray.appendChild(card);
-      });
-    } else {
-      const PLACEHOLDER = {
-        'duplicates': [['Acme Corp','Possible duplicate'],['Beta Industries','Possible duplicate']],
-        'missing':    [['RiverStone Builders','Missing: Industry'],['Overland Freight','Missing: Phone'],['Larkspur Logistics','Missing: Website']],
-        'smartfill':  [['Granite Peak Advisors','Inferred: Revenue'],['Maplewood Legal','Inferred: Employee count']],
-        'columns':    [['Suggested: Last Activity','Add column'],['Suggested: Lifecycle Stage','Add column']],
-      };
-      (PLACEHOLDER[categoryId] || [['Item 1','Details'],['Item 2','Details']]).forEach(([label, sub]) => {
-        const card = document.createElement('div');
-        card.className = 'php-card';
-        card.innerHTML = `<div class="php-card-top"><div class="php-card-header"><div class="php-avatar" style="background:#f0f0f0">${label[0]}</div><span class="php-company-name">${label}</span></div><p class="php-desc">${sub}</p></div><div class="php-card-actions"><button class="php-outreach-btn">Review</button><button class="php-dismiss-btn">Dismiss</button></div>`;
-        tray.appendChild(card);
-      });
-    }
-  }
-
-  function initFooterWidget() {
-    const fw = document.getElementById('fw');
-    const fwLabel = document.getElementById('fwLabel');
-    const fwScrollArea = document.getElementById('fwScrollArea');
-    const fwRetract = document.getElementById('fwRetract');
-    const fwCardsTray = document.getElementById('fwCardsTray');
-    const fwSwitcherDd = document.getElementById('fwSwitcherDd');
-    const fwSwitcher = document.getElementById('fwSwitcher');
-    if (!fw) return;
-
-    const SVG = {
-      star: `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1.005C8.276 1.005 8.5 1.229 8.5 1.505C8.5 4.819 11.186 7.505 14.5 7.505C14.776 7.505 15 7.729 15 8.005C15 8.281 14.776 8.505 14.5 8.505C11.186 8.505 8.5 11.191 8.5 14.505C8.5 14.781 8.276 15.005 8 15.005C7.724 15.005 7.5 14.781 7.5 14.505C7.5 11.191 4.814 8.505 1.5 8.505C1.224 8.505 1 8.281 1 8.005C1 7.729 1.224 7.505 1.5 7.505C4.814 7.505 7.5 4.819 7.5 1.505C7.5 1.229 7.724 1.005 8 1.005Z" fill="#666"/></svg>`,
-      prospect: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.832 4.212C6.963 4.027 7.203 3.952 7.416 4.032C9.466 4.801 10.74 6.513 10.74 8.5C10.74 10.21 9.558 11.5 7.99 11.5C6.474 11.5 5.24 10.266 5.24 8.75C5.24 7.904 5.508 7.275 6.136 6.646C6.332 6.451 6.648 6.451 6.843 6.646L7.196 7C7.788 5.982 6.966 4.952 6.859 4.824C6.712 4.65 6.701 4.398 6.832 4.212ZM8.353 5.696C8.501 6.448 8.375 7.321 7.593 8.104C7.398 8.299 7.082 8.299 6.886 8.104L6.521 7.738C6.32 8.037 6.24 8.344 6.24 8.75C6.24 9.731 7.008 10.5 7.99 10.5C9.004 10.5 9.74 9.659 9.74 8.5C9.74 7.401 9.231 6.405 8.353 5.696Z" fill="#33475b"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8 2C11.309 2 14 4.691 14 8C14 9.475 13.464 10.826 12.579 11.872L14.854 14.147C15.049 14.342 15.049 14.658 14.854 14.854C14.658 15.049 14.342 15.049 14.147 14.854L11.872 12.579C10.825 13.464 9.475 14 8 14C4.691 14 2 11.309 2 8C2 4.691 4.691 2 8 2ZM8 3C5.243 3 3 5.243 3 8C3 10.757 5.243 13 8 13C10.757 13 13 10.757 13 8C13 5.243 10.757 3 8 3Z" fill="#33475b"/></svg>`,
-      data: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 9.5H5.5a.5.5 0 0 0 0 1H8a.5.5 0 0 0 0-1zm2.5-2h-5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zm0-2h-5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1z" fill="#33475b"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8 2C11.308 2 14 4.692 14 8C14 9.475 13.464 10.825 12.578 11.871L14.854 14.147C15.049 14.342 15.049 14.658 14.854 14.854C14.658 15.049 14.342 15.049 14.147 14.854L11.871 12.578C10.825 13.464 9.474 14 8 14C4.692 14 2 11.308 2 8C2 4.692 4.692 2 8 2ZM8 3C5.243 3 3 5.243 3 8C3 10.757 5.243 13 8 13C10.757 13 13 10.757 13 8C13 5.243 10.757 3 8 3Z" fill="#33475b"/></svg>`,
-      expand: `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2.5 9a.5.5 0 0 1 .5.5v2.793l3.146-3.147a.5.5 0 0 1 .708.708L3.707 13H6.5a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5V9.5A.5.5 0 0 1 2.5 9zM13.5 2a.5.5 0 0 1 .5.5V7a.5.5 0 0 1-1 0V4.207l-3.146 3.147a.5.5 0 0 1-.708-.708L12.293 3H9.5a.5.5 0 0 1 0-1H13.5z" fill="#666"/></svg>`,
-    };
-
-    const FW_CATEGORIES = [
-      { id:'prospect',  label:'Recommended companies', icon:'prospect', highlight:'prospect', count:4 },
-      { id:'duplicates',label:'Duplicate records',     icon:'data',     highlight:'data',     count:8 },
-      { id:'missing',   label:'Missing properties',    icon:'data',     highlight:'data',     count:8 },
-      { id:'smartfill', label:'Smart fill suggestions',icon:'data',     highlight:'data',     count:6 },
-      { id:'columns',   label:'Suggested columns',     icon:'data',     highlight:'data',     count:3 },
-    ];
-    const RECORD_COLORS = {
-      'Horizonyte':'#daefe1','Northwood Builders':'#e1f2fb',
-      'RiverStone Builders':'#fcf6e6','Southland Industries':'#efeefd','Fairview Contractors':'#fcebf2',
-    };
-
-    let fwState = 'closed', drillMode = false, drillCatId = null;
-    let clickLocked = false, activeCellId = null, closeTimer = null;
-    let hoverTimer = null, leaveTimer = null;
-    let justDrilled = false, firstDrilledItem = null;
-
-    function setState(s) {
-      fwState = s;
-      fw.dataset.state = s;
-    }
-
-    function collapseAgent() {
-      hideTray();
-      clickLocked = false; activeCellId = null;
-      applyCategoryHighlight(null);
-      drillMode = false; drillCatId = null;
-      fwLabel.textContent = 'Recommended';
-      updateDdActive('all');
-      buildCategoryCells();
-    }
-    _fwCollapseCallback = collapseAgent;
-
-    function showTrayForCat(catId) {
-      buildCardsTray(catId, collapseAgent);
-      const rect = fw.getBoundingClientRect();
-      fwCardsTray.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
-      fwCardsTray.style.left = (rect.left + rect.width / 2) + 'px';
-      fwCardsTray.style.transform = 'translateX(-50%)';
-      fwCardsTray.classList.add('fw-tray-open');
-    }
-
-    function hideTray() {
-      fwCardsTray.classList.remove('fw-tray-open');
-    }
-
-    function scheduleClose() {
-      if (clickLocked) return;
-      clearTimeout(closeTimer);
-      closeTimer = setTimeout(() => {
-        if (!clickLocked) {
-          deactivateAll();
-          setState('closed');
-          drillMode = false; drillCatId = null;
-          fwLabel.textContent = 'Recommended';
-          buildCategoryCells();
-        }
-      }, 1000);
-    }
-    function cancelClose() { clearTimeout(closeTimer); }
-
-    function deactivateAll() {
-      fwScrollArea.querySelectorAll('.fw-cell,.fw-record-item').forEach(c => c.classList.remove('fw-active'));
-      clickLocked = false; activeCellId = null;
-      applyCategoryHighlight(null);
-      hideTray();
-    }
-
-    function activateCell(cellEl, cat) {
-      fwScrollArea.querySelectorAll('.fw-cell').forEach(c => c.classList.remove('fw-active'));
-      cellEl.classList.add('fw-active');
-      clickLocked = true; activeCellId = cat.id;
-      applyCategoryHighlight(cat.id);
-    }
-
-    function buildCategoryCells() {
-      fwScrollArea.innerHTML = '';
-      FW_CATEGORIES.forEach(cat => {
-        const cell = document.createElement('div');
-        cell.className = 'fw-cell';
-        cell.dataset.id = cat.id;
-        cell.dataset.highlight = cat.highlight;
-        cell.innerHTML = `${SVG[cat.icon]}<span>${cat.label}</span><span class="fw-badge">${cat.count}</span>`;
-        cell.addEventListener('mouseenter', () => {
-          clearTimeout(leaveTimer);
-          clearTimeout(hoverTimer);
-          hoverTimer = setTimeout(() => showTrayForCat(cat.id), 350);
-        });
-        cell.addEventListener('mouseleave', () => {
-          clearTimeout(hoverTimer);
-          leaveTimer = setTimeout(() => { if (!clickLocked) hideTray(); }, 100);
-        });
-        cell.addEventListener('click', e => {
-          e.stopPropagation();
-          clearTimeout(hoverTimer); clearTimeout(leaveTimer);
-          hideTray();
-          if (activeCellId === cat.id) {
-            clickLocked = false; activeCellId = null;
-            applyCategoryHighlight(null);
-            drillMode = false; drillCatId = null;
-            fwLabel.textContent = 'Recommended';
-            updateDdActive('all');
-            buildCategoryCells();
-          } else {
-            clickLocked = true; activeCellId = cat.id;
-            applyCategoryHighlight(cat.id);
-            drillMode = true; drillCatId = cat.id;
-            fwLabel.textContent = cat.label;
-            updateDdActive(cat.id);
-            justDrilled = true; firstDrilledItem = null;
-            buildDrilledCells(cat.id);
-          }
-        });
-        fwScrollArea.appendChild(cell);
-      });
-    }
-
-    function buildDrilledCells(catId) {
-      fwScrollArea.innerHTML = '';
-      const records = catId === 'prospect'
-        ? Object.keys(PROSPECT_CARD_DATA)
-        : ['Acme Corp','Beta Industries','Gamma LLC','Delta Co','Epsilon Ltd'];
-      records.forEach(name => {
-        const tier = HIGHLIGHT_MAP[name]?.prospect;
-        const bg = RECORD_COLORS[name] || '#f0f0f0';
-        const tierLabel = tier === 'hero' ? 'Top' : tier === 'high' ? 'High' : '';
-        const item = document.createElement('div');
-        item.className = 'fw-record-item';
-        item.innerHTML = `<div class="fw-record-avatar" style="background:${bg}">${name[0]}</div><span class="fw-record-name">${name}</span>${tierLabel ? `<span class="fw-tier-badge" style="background:${tier==='hero'?'#FCECE9':'#FEF8F7'}">${tierLabel}</span>` : ''}`;
-        item.addEventListener('mouseenter', () => {
-          if (justDrilled) {
-            if (firstDrilledItem === null) { firstDrilledItem = name; return; }
-            if (firstDrilledItem === name) return;
-            justDrilled = false; firstDrilledItem = null;
-          }
-          document.querySelectorAll('.idx-table').forEach(t => t.classList.add('idx-table--row-isolate'));
-          document.querySelectorAll('.idx-tr').forEach(r => {
-            if (r.querySelector('.idx-co-name-primary')?.textContent.trim() === name)
-              r.classList.add('hl-row-focus');
-          });
-        });
-        item.addEventListener('mouseleave', () => {
-          document.querySelectorAll('.idx-table').forEach(t => t.classList.remove('idx-table--row-isolate'));
-          document.querySelectorAll('.idx-tr').forEach(r => r.classList.remove('hl-row-focus'));
-        });
-        item.addEventListener('click', () => openFocusMode());
-        fwScrollArea.appendChild(item);
-      });
-    }
-
-    function closeSwitcherDd() { fwSwitcherDd.classList.remove('open'); }
-
-    function updateDdActive(id) {
-      fwSwitcherDd.querySelectorAll('.fw-dd-item').forEach(i => i.classList.toggle('fw-dd-active', i.dataset.id === id));
-    }
-
-    // Build dropdown — "Recommended" at top, then grouped by agent
-    const recBtn = document.createElement('button');
-    recBtn.className = 'fw-dd-item fw-dd-active';
-    recBtn.dataset.id = 'all';
-    recBtn.innerHTML = `${SVG.star}<span>Recommended</span>`;
-    recBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      clickLocked = false; activeCellId = null;
-      applyCategoryHighlight(null);
-      drillMode = false; drillCatId = null;
-      fwLabel.textContent = 'Recommended';
-      updateDdActive('all');
-      buildCategoryCells();
-      hideTray();
-      closeSwitcherDd();
-    });
-    fwSwitcherDd.appendChild(recBtn);
-
-    const DD_GROUPS = [
-      { label: 'Prospecting agent', cats: FW_CATEGORIES.filter(c => c.icon === 'prospect') },
-      { label: 'Data agent',        cats: FW_CATEGORIES.filter(c => c.icon === 'data') },
-    ];
-
-    DD_GROUPS.forEach(group => {
-      const sep = document.createElement('div');
-      sep.className = 'fw-dd-sep';
-      fwSwitcherDd.appendChild(sep);
-
-      const header = document.createElement('div');
-      header.className = 'fw-dd-header';
-      header.textContent = group.label;
-      fwSwitcherDd.appendChild(header);
-
-      group.cats.forEach(cat => {
-        const btn = document.createElement('button');
-        btn.className = 'fw-dd-item';
-        btn.dataset.id = cat.id;
-        btn.innerHTML = `<span>${cat.label}</span>`;
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          clickLocked = true; activeCellId = cat.id;
-          applyCategoryHighlight(cat.id);
-          drillMode = true; drillCatId = cat.id;
-          fwLabel.textContent = cat.label;
-          updateDdActive(cat.id);
-          justDrilled = true; firstDrilledItem = null;
-          buildDrilledCells(cat.id);
-          hideTray();
-          closeSwitcherDd();
-        });
-        fwSwitcherDd.appendChild(btn);
-      });
-    });
-
-    // Switcher click
-    fwSwitcher.addEventListener('click', e => {
-      e.stopPropagation();
-      if (fwState === 'closed') {
-        setState('open');
-        if (drillMode && drillCatId) {
-          const cat = FW_CATEGORIES.find(c => c.id === drillCatId);
-          if (cat && clickLocked) applyCategoryHighlight(cat.id);
-          justDrilled = true; firstDrilledItem = null;
-          buildDrilledCells(drillCatId);
-        } else {
-          buildCategoryCells();
-        }
-        return;
-      }
-      if (!fwSwitcherDd.classList.contains('open')) {
-        const rect = fwSwitcher.getBoundingClientRect();
-        fwSwitcherDd.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
-        fwSwitcherDd.style.left = rect.left + 'px';
-        fwSwitcherDd.classList.add('open');
-        setTimeout(() => document.addEventListener('click', closeSwitcherDd, { once: true }), 0);
-      } else {
-        closeSwitcherDd();
-      }
-    });
-
-    // Retract
-    fwRetract.addEventListener('click', e => {
-      e.stopPropagation();
-      applyCategoryHighlight(null);
-      hideTray();
-      setState('closed');
-      closeSwitcherDd();
-    });
-
-    // Leaving the pill clears the drill-guard so next hover isolates normally
-    fw.addEventListener('mouseleave', () => { justDrilled = false; firstDrilledItem = null; });
-
-    // Tray hover — keep tray open while mouse is inside
-    fwCardsTray.addEventListener('mouseenter', () => {
-      clearTimeout(leaveTimer);
-      clearTimeout(hoverTimer);
-    });
-    fwCardsTray.addEventListener('mouseleave', () => {
-      leaveTimer = setTimeout(() => { if (!clickLocked) hideTray(); }, 100);
-    });
-
-    buildCategoryCells();
-    setState('open');
-  }
-
-  /* FW init guard + visibility wiring driven by overflow menu mode */
-  let __fwInitialized = false;
-  function __ensureFooterWidgetInit() {
-    if (__fwInitialized) return;
-    initFooterWidget();
-    __fwInitialized = true;
-  }
-  function __setFooterWidgetVisible(visible) {
-    const el = document.getElementById('footerWidget');
-    if (!el) return;
-    el.classList.toggle('layout-hidden', !visible);
-    if (visible) __ensureFooterWidgetInit();
-    else applyCategoryHighlight(null);
-  }
-  const __fwObs = new MutationObserver(() => {
-    const mode = document.body.dataset.viewMode;
-    __setFooterWidgetVisible(mode === 'footer-widget');
-  });
-  __fwObs.observe(document.body, { attributes:true, attributeFilter:['data-view-mode'] });
-
+  /* Expose for Breeze chat sidebar */
+  window.applyHighlight = applyHighlight;
+  window.updateRailActiveStates = updateRailActiveStates;
 })();
 </script>
 
@@ -4688,76 +5522,6 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
 .fm-draft-toast .fm-dots span{background:#fff}
 
 @keyframes fmFadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-
-/* ─── Prospect Overlay (per-row inline panel; activated with .idx-table.prospect-mode) ─── */
-.idx-table.prospect-mode .hl-prospect-hero .idx-td,
-.idx-table.prospect-mode .hl-prospect-high .idx-td{height:120px;}
-.prospect-overlay-th{width:0;padding:0;border:none;background:var(--surface,#fff);position:relative;z-index:12;overflow:hidden;transition:width .2s ease;}
-.idx-table.prospect-mode .prospect-overlay-th{width:260px;}
-.prospect-overlay-td{position:relative;z-index:3;width:0;padding:0;vertical-align:middle;pointer-events:none;transition:width .2s ease;overflow:hidden;}
-.idx-table.prospect-mode .prospect-overlay-td:not(.prospect-overlay-td--empty){width:260px;padding:8px 12px;pointer-events:auto;box-shadow:-3px 0 8px rgba(0,0,0,.06);}
-.prospect-overlay-card{display:none;flex-direction:column;gap:6px;border-left:2px solid rgba(0,0,0,.07);padding-left:10px;}
-.idx-table.prospect-mode .prospect-overlay-td:not(.prospect-overlay-td--empty) .prospect-overlay-card{display:flex;}
-.hl-prospect-hero .prospect-overlay-td{background:#FCECE9;}
-.hl-prospect-high .prospect-overlay-td{background:#FEF8F7;}
-.idx-table.prospect-mode .prospect-overlay-td--empty{width:260px;background:var(--surface,#fff);}
-.prospect-overlay-desc{font-size:12px;line-height:16px;color:#141414;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.prospect-overlay-tags{display:flex;align-items:center;gap:4px;flex-wrap:nowrap;overflow:hidden;}
-.prospect-overlay-tag{height:20px;padding:0 7px;border-radius:6px;font-size:11px;line-height:20px;white-space:nowrap;flex-shrink:0;color:#141414;}
-.prospect-overlay-tag-overflow{background:#333!important;color:#fff!important;}
-.prospect-overlay-actions{display:flex;align-items:center;gap:6px;margin-top:2px;}
-.prospect-overlay-outreach,.prospect-overlay-dismiss{padding:3px 10px;border-radius:9999px;font-size:11px;font-weight:400;line-height:16px;font-family:inherit;cursor:pointer;border:1px solid #8a8a8a;background:#fff;color:#141414;transition:background .1s,border-color .1s;white-space:nowrap;}
-.prospect-overlay-outreach:hover,.prospect-overlay-dismiss:hover{background:#f5f5f5;border-color:#6b6b6b;}
-
-/* ─── Footer Widget (overflow variant) ─── */
-/* ── Footer Widget ── */
-.footer-widget-wrap{flex:1;display:flex;justify-content:center;align-items:center;min-width:0;padding:0 60px;}
-.fw{display:inline-flex;align-items:center;height:32px;background:#fff;border:1px solid #ccc;border-radius:9999px;overflow:hidden;pointer-events:auto;white-space:nowrap;max-width:100%;}
-.fw-switcher{display:flex;align-items:center;gap:8px;padding:0 12px 0 10px;height:32px;cursor:pointer;flex-shrink:0;user-select:none;transition:background .1s;}
-.fw-switcher:hover{background:rgba(0,0,0,.04);}
-.fw[data-state='open'] .fw-switcher,.fw[data-state='expanded'] .fw-switcher{padding-right:16px;border-right:1px solid #ccc;}
-.fw-label{font-size:12px;color:#666;font-family:inherit;}
-.fw-caret{max-width:0;overflow:hidden;opacity:0;flex-shrink:0;line-height:0;transition:max-width .28s cubic-bezier(.4,0,.2,1),opacity .2s ease .06s;}
-.fw[data-state='open'] .fw-caret,.fw[data-state='expanded'] .fw-caret{max-width:20px;opacity:.5;}
-.fw-scroll-area{display:flex;max-width:0;overflow:hidden;align-items:center;height:32px;opacity:0;transition:max-width .32s cubic-bezier(.4,0,.2,1),opacity .24s ease .05s;}
-.fw-scroll-area::-webkit-scrollbar{display:none;}
-.fw[data-state='open'] .fw-scroll-area,.fw[data-state='expanded'] .fw-scroll-area{max-width:700px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;opacity:1;}
-.fw-cell{display:flex;align-items:center;gap:8px;padding:0 14px;height:32px;border-right:1px solid #e8e8e8;flex-shrink:0;cursor:pointer;font-size:13px;color:#33475b;transition:background .1s;}
-.fw-cell:hover,.fw-cell.fw-active{background:#f5f5f5;}
-.fw-badge{width:22px;height:22px;border-radius:50%;background:#efeefd;border:1px solid #ac98f8;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#141414;font-family:inherit;}
-.fw-expand-btn{width:20px;height:20px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.4;border-radius:4px;flex-shrink:0;padding:0;font-family:inherit;}
-.fw-expand-btn:hover{opacity:1;background:rgba(0,0,0,.06);}
-.fw-right-anchor{display:flex;align-items:center;justify-content:center;max-width:0;overflow:hidden;height:32px;flex-shrink:0;transition:max-width .32s cubic-bezier(.4,0,.2,1);}
-.fw[data-state='open'] .fw-right-anchor,.fw[data-state='expanded'] .fw-right-anchor{max-width:48px;border-left:1px solid #ccc;}
-.fw-retract-btn{width:28px;height:28px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px;padding:0;font-family:inherit;}
-.fw-retract-btn:hover{background:#f0f0f0;}
-.fw-cards-tray{position:fixed;display:none;overflow-x:auto;background:#fff;border:1px solid #ccc;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.14);pointer-events:auto;scrollbar-width:none;max-width:min(900px,85vw);align-items:stretch;padding:12px;gap:10px;z-index:200;}
-.fw-cards-tray::-webkit-scrollbar{display:none;}
-.fw-cards-tray.fw-tray-open{display:flex;}
-.fw-cards-tray .php-card{width:280px;flex:0 0 280px;border-bottom:none;border-right:1px solid #e8e8e8;border-radius:0;display:flex;flex-direction:column;transition:opacity .15s;}
-.fw-cards-tray .php-card .php-card-top{flex:1;}
-.fw-cards-tray .php-tags{flex-wrap:wrap;}
-.fw-cards-tray .php-card:last-child{border-right:none;}
-.fw-cards-tray .php-card{opacity:.4;}
-.fw-cards-tray .php-card--hero,.fw-cards-tray .php-card:first-child,.fw-cards-tray .php-card:hover{opacity:1;}
-.idx-table--row-isolate .idx-tr{opacity:.18;transition:opacity .1s;}
-.idx-table--row-isolate .idx-tr.hl-row-focus{opacity:1;}
-.idx-table.prospect-mode .hl-prospect-hero .idx-td,
-.idx-table.prospect-mode .hl-prospect-high .idx-td{height:120px;}
-.fw-dd-sep{height:1px;background:#e8e8e8;margin:8px 0;}
-.fw-switcher-dd{position:fixed;background:#fff;border:1px solid #ccc;border-radius:16px;box-shadow:0 8px 16px rgba(0,0,0,.06);padding:8px 0;z-index:600;min-width:240px;display:none;}
-.fw-switcher-dd.open{display:block;}
-.fw-dd-header{padding:8px 20px 4px;font-size:14px;color:#666;font-family:inherit;pointer-events:none;user-select:none;white-space:nowrap;}
-.fw-dd-item{min-height:40px;padding:4px 20px;font-size:14px;color:#141414;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;font-family:inherit;width:100%;border:none;background:transparent;text-align:left;}
-.fw-dd-item:hover{background:#f5f5f5;}
-.fw-dd-item.fw-dd-active{font-weight:500;}
-.fw-record-item{display:flex;align-items:center;gap:8px;padding:0 14px;height:32px;border-right:1px solid #e8e8e8;flex-shrink:0;cursor:pointer;transition:background .1s;}
-.fw-record-item:hover{background:#f5f5f5;}
-.fw-record-avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;color:#141414;font-family:inherit;}
-.fw-record-name{font-size:13px;color:#141414;white-space:nowrap;font-family:inherit;}
-.fw-tier-badge{padding:1px 7px;border-radius:9999px;font-size:11px;font-family:inherit;white-space:nowrap;}
-.footer-widget-wrap.layout-hidden{display:none!important;}
 </style>
 
 <!-- FOCUS MODE HTML -->
@@ -4786,12 +5550,11 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
       <!-- Header -->
       <header class="fm-header">
         <div class="fm-header-left">
-          <h1 class="fm-title">Outreach to Horizonyte</h1>
-          <div class="fm-signal-tags">
-            <span class="fm-signal-tag">Visitor</span>
-            <span class="fm-signal-tag">Research</span>
-            <span class="fm-signal-tag">Funding</span>
-            <span class="fm-signal-tag fm-tag-more">+2</span>
+          <h1 class="fm-title" id="fmHeaderTitle">Outreach to Nike</h1>
+          <div class="fm-signal-tags" id="fmSignalTags">
+            <span class="fm-signal-tag">Research signal</span>
+            <span class="fm-signal-tag">Funding event</span>
+            <span class="fm-signal-tag">Enterprise</span>
           </div>
         </div>
         <button class="fm-close-btn" onclick="closeFocusMode()" title="Close">
@@ -4801,17 +5564,48 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
 
       <!-- Contact tabs -->
       <nav class="fm-tabs">
-        <button class="fm-tab active" onclick="fmSwitchTab(this,0)">Richard Stegger</button>
-        <button class="fm-tab" onclick="fmSwitchTab(this,1)">Dana Choi</button>
-        <button class="fm-tab" onclick="fmSwitchTab(this,2)">Marcus Webb</button>
+        <div class="fm-tab-filter" id="fmTabFilter">
+          <button class="fm-tab-filter-btn" id="fmTabFilterBtn" type="button" aria-haspopup="true" aria-expanded="false">
+            <span id="fmTabFilterLabel">Suggested</span>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5L6 7.5L9 4.5"/></svg>
+          </button>
+          <div class="fm-tab-filter-menu" role="menu">
+            <button class="fm-tab-filter-item active" data-filter="Suggested" role="menuitemradio">
+              Suggested
+              <svg class="fm-tab-filter-item-check" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l3 3 7-7"/></svg>
+            </button>
+            <button class="fm-tab-filter-item" data-filter="Engaged" role="menuitemradio">
+              Engaged
+              <svg class="fm-tab-filter-item-check" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l3 3 7-7"/></svg>
+            </button>
+            <button class="fm-tab-filter-item" data-filter="All" role="menuitemradio">
+              All
+              <svg class="fm-tab-filter-item-check" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l3 3 7-7"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="fm-tab active" onclick="fmSwitchTab(this,0)">Maria Chen</button>
+        <button class="fm-tab" onclick="fmSwitchTab(this,1)">David Park</button>
+        <button class="fm-tab" onclick="fmSwitchTab(this,2)">Rachel Lee</button>
       </nav>
 
       <!-- Body -->
       <div class="fm-body" id="fmBody">
 
+        <!-- Floating "Context" chip — visible when context is collapsed -->
+        <button class="fm-context-show" id="fmContextShow" aria-label="Show context">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2l4 4-4 4"/></svg>
+          Context
+        </button>
+
         <!-- Left panel -->
         <div class="fm-left" id="fmLeft">
-          <div class="fm-context-label">Gathered context</div>
+          <div class="fm-context-label">
+            <span>Gathered context</span>
+            <button class="fm-context-toggle" id="fmContextToggle" aria-label="Collapse context" title="Collapse context">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>
+            </button>
+          </div>
           <div class="fm-context-scroll" id="fmContextScroll">
 
             <!-- Col 1: Contact + Emails -->
@@ -4822,10 +5616,10 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
                 <div class="fm-card-hdr">
                   <div class="fm-drag"><svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor"><path d="m12,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1ZM18,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm-6,5.99h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm6,0h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Z"/></svg></div>
                   <div class="fm-meta">
-                    <div class="fm-avatar-person" id="fmContactAvatar" style="background:#daefe1;color:#141414">RS</div>
+                    <div class="fm-avatar-person" id="fmContactAvatar" style="background:#daefe1;color:#141414">MC</div>
                     <div>
-                      <div class="fm-card-name" id="fmContactCardName">Richard Stegger</div>
-                      <div class="fm-card-role" id="fmContactCardRole">VP of Operations · Horizonyte</div>
+                      <div class="fm-card-name" id="fmContactCardName">Maria Chen</div>
+                      <div class="fm-card-role" id="fmContactCardRole">VP Strategic Sourcing · Nike</div>
                     </div>
                   </div>
                   <button class="fm-card-check" onclick="fmToggleCard(this)"><svg viewBox="0 0 32 32" fill="currentColor"><path d="M14.13,21.5c-.29,0-.58-.11-.81-.33l-4.99-4.99c-.45-.45-.45-1.17,0-1.62.45-.45,1.17-.45,1.62,0l4.18,4.18,7.91-7.92c.45-.45,1.17-.45,1.62,0,.45.45.45,1.17,0,1.62l-8.72,8.72c-.22.22-.52.33-.81.33Z"/></svg></button>
@@ -4910,21 +5704,21 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
             <div class="fm-context-col" id="fmCol2">
 
               <!-- Company card -->
-              <div class="fm-card" data-fm-key="company" data-fm-title="Horizonyte">
+              <div class="fm-card" data-fm-key="company" data-fm-title="Nike">
                 <div class="fm-card-hdr">
                   <div class="fm-drag"><svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor"><path d="m12,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1ZM18,2h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm0,6h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm-6,5.99h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Zm6,0h2.01c.55,0,1,.45,1,1v2.01c0,.55-.45,1-1,1h-2.01c-.55,0-1-.45-1-1v-2.01c0-.55.45-1,1-1Z"/></svg></div>
                   <div class="fm-meta">
-                    <div class="fm-avatar-co" style="background:#daefe1;color:#141414;border-radius:50%">H</div>
+                    <div class="fm-avatar-co" id="fmCompanyAvatar" style="background:#daefe1;color:#141414;border-radius:50%">N</div>
                     <div>
-                      <div class="fm-card-name">Horizonyte</div>
-                      <div class="fm-card-role">Subcontractor · 60 employees</div>
+                      <div class="fm-card-name" id="fmCompanyName">Nike</div>
+                      <div class="fm-card-role" id="fmCompanyRole">Apparel & footwear · 79K employees</div>
                     </div>
                   </div>
                   <button class="fm-card-check" onclick="fmToggleCard(this)"><svg viewBox="0 0 32 32" fill="currentColor"><path d="M14.13,21.5c-.29,0-.58-.11-.81-.33l-4.99-4.99c-.45-.45-.45-1.17,0-1.62.45-.45,1.17-.45,1.62,0l4.18,4.18,7.91-7.92c.45-.45,1.17-.45,1.62,0,.45.45.45,1.17,0,1.62l-8.72,8.72c-.22.22-.52.33-.81.33Z"/></svg></button>
                 </div>
-                <div class="fm-card-body">
-                  <p>Commercial drywall and framing. New York, NY. $11M revenue. Tracking project costs in spreadsheets. Similar profile to 3 closed-won accounts.</p>
-                  <p style="margin-top:10px">Hiring surged 28% in the last 90 days, signaling active growth.</p>
+                <div class="fm-card-body" id="fmCompanyBody">
+                  <p>Apparel &amp; footwear giant. Beaverton, OR. Recently announced an internal funding round for innovation labs and supply-chain modernization.</p>
+                  <p style="margin-top:10px">Active research into vendor-data centralization and DTC reporting. Hiring up 14% this quarter.</p>
                 </div>
                 <div class="fm-card-resize"><svg viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="9" y1="3" x2="3" y2="9"/><line x1="9" y1="6" x2="6" y2="9"/></svg></div>
               </div>
@@ -4989,10 +5783,10 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
             <div class="fm-field">
               <span class="fm-field-label">To</span>
               <span class="fm-recipient-tag" id="fmRecipientTag">
-                <span id="fmRecipientName">Richard Stegger</span>
+                <span id="fmRecipientName">Maria Chen</span>
                 <button class="fm-tag-remove" aria-label="Remove"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
               </span>
-              <span id="fmRecipientEmail" style="font-size:13px;font-weight:300;color:var(--fm-text-2)">rstegger@horizonyte.com</span>
+              <span id="fmRecipientEmail" style="font-size:13px;font-weight:300;color:var(--fm-text-2)">maria.chen@nike.com</span>
               <div class="fm-field-aux"><span>Cc</span><span>Bcc</span></div>
             </div>
 
@@ -5003,7 +5797,7 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
 
             <div class="fm-field">
               <span class="fm-field-label">Subject</span>
-              <span class="fm-field-value" id="fmSubject">Quick coffee chat?</span>
+              <span class="fm-field-value" id="fmSubject">Scaling reporting after the innovation lab launch</span>
             </div>
 
             <div class="fm-hr"></div>
@@ -5026,7 +5820,7 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
             <div class="fm-hr"></div>
 
             <div class="fm-composer-footer">
-              <button class="fm-send-btn" id="fmSendBtn" onclick="fmSendEmail()">Send</button>
+              <button class="fm-send-btn" id="fmSendBtn" onclick="fmSendEmail()">Start Outreach</button>
             </div>
           </div>
         </div><!-- /fm-right -->
@@ -5037,7 +5831,7 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
       <footer class="fm-footer">
         <span class="fm-footer-nav" id="fmFooterNav">1 of 3 contacts</span>
         <button class="fm-footer-btn" id="fmBackBtn" onclick="fmNavigate(-1)" disabled style="opacity:.4;cursor:default">← Back</button>
-        <button class="fm-footer-btn fm-footer-primary" id="fmNextBtn" onclick="closeFocusMode();setTimeout(()=>showDealToast(),120)">Done</button>
+        <button class="fm-footer-btn fm-footer-primary" id="fmNextBtn" onclick="fmNavigate(1)">Next</button>
       </footer>
 
     </div><!-- /fm-modal -->
@@ -5049,112 +5843,173 @@ body[data-view-mode="data-agent"] .idx-td.smart.visible{padding-left:16px; paddi
 (function() {
 'use strict';
 
-const FM_CONTACTS = [
+// Companies are the top-level units; each has its own contacts. "Next" navigates
+// across companies; tabs navigate across contacts within the active company.
+const FM_COMPANIES = [
+  // ─── Nike ─────────────────────────────────────────────────
   {
-    name: 'Richard Stegger', initials: 'RS',
-    email: 'rstegger@horizonyte.com',
-    role: 'VP of Operations · Horizonyte',
-    subject: 'Quick coffee chat?',
-    avatarStyle: 'background:#daefe1;color:#141414',
-    bio: [
-      'Joined Horizonyte 8 months ago.',
-      'Leads an operations team of 14.',
-      'Previously at QuantaCorp as Ops Manager.',
-      'Focused on data-driven workflow improvements.',
+    company: 'Nike',
+    companyAvatar: 'N',
+    companyAvatarStyle: 'background:#daefe1;color:#141414;border-radius:50%',
+    companyRole: 'Apparel & footwear · 79K employees',
+    companyBody: '<p>Apparel &amp; footwear giant. Beaverton, OR. Recently announced an internal funding round for innovation labs and supply-chain modernization.</p><p style="margin-top:10px">Active research into vendor-data centralization and DTC reporting. Hiring up 14% this quarter.</p>',
+    signals: [
+      { label: 'Research signal' },
+      { label: 'Funding event' },
+      { label: 'Enterprise' },
     ],
-    emails: [
-      { sender: 'Devon Richardson', subject: 'Re: Following up on the demo', date: 'Yesterday', expanded: true,
-        preview: "<p>Hi Gabby,</p><p>My team loved the demo. We'd love to move forward — can we set up time to review pricing options?</p><p>Devon</p>" },
-      { sender: 'Devon Richardson', subject: 'Demo follow-up — questions', date: '12 days ago',
-        preview: '<p>Hi Gabby,</p><p>Thanks for the great demo. A few questions on field team workflows — can we dig in? Happy to loop in Richard too.</p><p>Devon</p>' },
-      { sender: 'Ben Chiu', subject: 'Intro — Growzz platform', date: '5 days ago',
-        preview: '<p>Hi Gabby,</p><p>Devon forwarded me your note — sounds interesting. Would love to hear more about how Growzz handles reporting for field teams.</p><p>Ben</p>' },
-    ],
-    activity: [
-      { label: 'Follow-up call', time: 'Yesterday' },
-      { label: 'Demo meeting', time: '5 days ago' },
-      { label: 'Contact created', time: '12 days ago' },
-      { label: 'Website visit', time: '34 days ago' },
+    contacts: [
+      {
+        name: 'Maria Chen', initials: 'MC',
+        email: 'maria.chen@nike.com',
+        role: 'VP Strategic Sourcing · Nike',
+        subject: 'Scaling reporting after the innovation lab launch',
+        avatarStyle: 'background:#daefe1;color:#141414',
+        bio: [
+          'At Nike for 7 years; runs sourcing across 4 product categories.',
+          'Profiled in Sourcing Industry Group on supplier-data initiatives.',
+          'Owns the analytics-platform RFP this quarter.',
+          'Followed Growzz on LinkedIn last week.',
+        ],
+        emails: [
+          { sender: 'Procurement Weekly', subject: 'Q4 supplier ops priorities', date: '3 days ago', expanded: true,
+            preview: '<p>Internal note flagging vendor-data centralization as a top initiative across the apparel category.</p>' },
+          { sender: 'Maria Chen', subject: 'Re: Supplier reporting tools', date: '8 days ago',
+            preview: "<p>Hi Gabby,</p><p>We're scoping a few platforms in Q4 — happy to learn more about Growzz.</p><p>Maria</p>" },
+        ],
+        activity: [
+          { label: 'Visited pricing page', time: '2 days ago' },
+          { label: 'Downloaded ROI calculator', time: '5 days ago' },
+          { label: 'Funding round announced', time: '12 days ago' },
+          { label: 'LinkedIn follow', time: '15 days ago' },
+        ],
+        emailDraft: `<p>Hi Maria,</p>
+<p>Saw the news on <span data-fm-src="company">Nike's innovation lab funding</span> — congrats. As you scale supplier reporting and analytics, I'd love to walk through how Growzz centralizes vendor data across categories for teams your size.</p>
+<p>Given <span data-fm-src="emails">the Q4 priority around vendor-data centralization</span>, would Thursday or Friday work for a 20-min walkthrough? I'll tailor it to <span data-fm-src="contact">the analytics-platform RFP</span>.</p>
+<p>Here's a <a href="#" style="color:#0091ae">link</a> to grab time.</p>
+<p>Best,<br>Gabby<br><strong>Growzz | Business Growth Platform</strong></p>`,
+      },
+      {
+        name: 'David Park', initials: 'DP',
+        email: 'david.park@nike.com',
+        role: 'Director of Procurement Tech · Nike',
+        subject: 'Procurement tooling roadmap',
+        avatarStyle: 'background:#fcf6e6;color:#141414',
+        bio: [
+          'Joined Nike 4 months ago from Adidas.',
+          'Owns the procurement-tech roadmap for the apparel category.',
+          'Previously evaluated Coupa, Ivalua, and Workday Procurement.',
+        ],
+        emails: [
+          { sender: 'David Park', subject: 'Quick question on Growzz', date: '2 days ago', expanded: true,
+            preview: '<p>Hi Gabby — Maria mentioned you. Curious how Growzz fits next to Coupa. Got a deck?</p><p>David</p>' },
+        ],
+        activity: [
+          { label: 'Email opened', time: '2 days ago' },
+          { label: 'LinkedIn profile visit', time: '7 days ago' },
+        ],
+        emailDraft: `<p>Hi David,</p>
+<p>Maria mentioned you're scoping the procurement-tech roadmap — happy to share how Growzz <span data-fm-src="company">complements existing P2P tools</span> rather than replacing them.</p>
+<p>Most teams use us as the analytics layer over Coupa/Ivalua. <span data-fm-src="emails">Would a 20-min walkthrough next week work?</span></p>
+<p>Best,<br>Gabby<br><strong>Growzz | Business Growth Platform</strong></p>`,
+      },
+      {
+        name: 'Rachel Lee', initials: 'RL',
+        email: 'rachel.lee@nike.com',
+        role: 'Senior Sourcing Manager · Nike',
+        subject: 'Vendor-data centralization workflow',
+        avatarStyle: 'background:#efeefd;color:#141414',
+        bio: [
+          'On Maria\'s team for 3 years.',
+          'Day-to-day owner of the supplier-data refresh process.',
+          'Power user of the existing internal tooling.',
+        ],
+        emails: [],
+        activity: [
+          { label: 'New contact', time: '1 day ago' },
+        ],
+        emailDraft: `<p>Hi Rachel,</p>
+<p>Maria flagged you as the day-to-day owner for <span data-fm-src="contact">supplier-data workflows</span>. Curious — what's the most painful part of the current refresh process?</p>
+<p>Open to a quick 15-min call to see if Growzz could help.</p>
+<p>Best,<br>Gabby<br><strong>Growzz | Business Growth Platform</strong></p>`,
+      },
     ],
   },
+  // ─── Reddit ───────────────────────────────────────────────
   {
-    name: 'Dana Choi', initials: 'DC',
-    email: 'dchoi@horizonyte.com',
-    role: 'Head of Finance · Horizonyte',
-    subject: 'Streamlining reporting at Horizonyte',
-    avatarStyle: 'background:#e1f2fb;color:#141414',
-    bio: [
-      'At Horizonyte for 2 years, previously at Meridian Capital Group.',
-      'Oversees financial reporting across a 60-person org.',
-      'Has flagged spreadsheet-based cost tracking as a top pain point.',
-      'Evaluating 2–3 platforms this quarter for a reporting overhaul.',
+    company: 'Reddit',
+    companyAvatar: 'R',
+    companyAvatarStyle: 'background:#fcece6;color:#141414;border-radius:50%',
+    companyRole: 'Social media · ~2K employees',
+    companyBody: '<p>Social media platform. San Francisco, CA. Public Q4 earnings call flagged monetization expansion as a top priority.</p><p style="margin-top:10px">Hiring surge for revenue-side roles, plus active research into ad-attribution tooling.</p>',
+    signals: [
+      { label: 'Visitor intent' },
+      { label: 'Hire signal' },
+      { label: 'Enterprise' },
     ],
-    emails: [
-      { sender: 'Dana Choi', subject: 'Re: Cutting reporting overhead at Horizonyte', date: '3 days ago', expanded: true,
-        preview: "<p>Hi Gabby,</p><p>Thanks for reaching out — timing is actually pretty good. We've been frustrated with our current setup. Would be open to a 20-minute call to see if there's a fit.</p><p>Dana</p>" },
-      { sender: 'Gabby (you)', subject: 'Cutting reporting overhead at Horizonyte', date: '9 days ago',
-        preview: '<p>Hi Dana,</p><p>I noticed Horizonyte has been tracking project costs in spreadsheets. Our platform can centralize that reporting automatically — happy to show you in 20 minutes.</p><p>Gabby</p>' },
-    ],
-    activity: [
-      { label: 'Replied to email', time: '3 days ago' },
-      { label: 'Pricing page viewed', time: '6 days ago' },
-      { label: 'Contact created', time: '9 days ago' },
-      { label: 'LinkedIn profile visit', time: '22 days ago' },
-    ],
-  },
-  {
-    name: 'Marcus Webb', initials: 'MW',
-    email: 'mwebb@horizonyte.com',
-    role: 'Field Operations Lead · Horizonyte',
-    subject: 'Field team workflows — worth a call?',
-    avatarStyle: 'background:#efeefd;color:#141414',
-    bio: [
-      'At Horizonyte for 3 years — promoted from site foreman.',
-      'Manages 22 field crews across 4 active project sites.',
-      'Flagged by Devon as the key influencer on software decisions.',
-      'Hands-on with scheduling and job tracking day-to-day.',
-    ],
-    emails: [
-      { sender: 'Ben Chiu', subject: 'Looping you in — Growzz', date: '5 days ago', expanded: true,
-        preview: "<p>Hey Marcus,</p><p>Wanted to loop you in on this — Devon and Dana have been chatting with Growzz about field team reporting. Given you're the one running the crews, your take would be really valuable.</p><p>Ben</p>" },
-    ],
-    activity: [
-      { label: 'Referred by Devon Richardson', time: '5 days ago' },
-      { label: 'Attended company demo', time: '5 days ago' },
-      { label: 'Contact created', time: '5 days ago' },
+    contacts: [
+      {
+        name: 'Jordan Kim', initials: 'JK',
+        email: 'jordan.kim@reddit.com',
+        role: 'Director of Monetization · Reddit',
+        subject: 'Closing the loop on monetization research',
+        avatarStyle: 'background:#fcece6;color:#141414',
+        bio: [
+          'At Reddit for 3 years; leads monetization for emerging products.',
+          'Posted on the Reddit Eng blog about scaling revenue analytics.',
+          'Engaged with Growzz content twice this month.',
+          'Reports to the SVP of Revenue.',
+        ],
+        emails: [
+          { sender: 'Reddit Revenue digest', subject: 'Q4 revenue ops roadmap', date: '4 days ago', expanded: true,
+            preview: '<p>Internal newsletter highlighting attribution-tooling investment plans for the next two quarters.</p>' },
+          { sender: 'Jordan Kim', subject: 'Re: Quick chat?', date: '11 days ago',
+            preview: "<p>Hi Gabby,</p><p>Thanks for reaching out. Curious how Growzz handles attribution at scale — got a deck?</p><p>Jordan</p>" },
+        ],
+        activity: [
+          { label: 'Visited monetization case study', time: '3 days ago' },
+          { label: 'New role posted: Sr. Revenue Analyst', time: '6 days ago' },
+          { label: 'Engaged with our content', time: '11 days ago' },
+        ],
+        emailDraft: `<p>Hi Jordan,</p>
+<p>Came across your <span data-fm-src="contact">Reddit Eng post on scaling revenue analytics</span> — really resonated. As Reddit invests in <span data-fm-src="company">monetization tooling and attribution</span>, Growzz could plug in cleanly to the work you're already doing.</p>
+<p>Happy to share a 15-min walkthrough on how teams like yours use us for <span data-fm-src="activity">revenue ops reporting</span>. Does next week work?</p>
+<p>Best,<br>Gabby<br><strong>Growzz | Business Growth Platform</strong></p>`,
+      },
+      {
+        name: 'Sam Patel', initials: 'SP',
+        email: 'sam.patel@reddit.com',
+        role: 'Senior Revenue Analyst · Reddit',
+        subject: 'Attribution analytics deep dive',
+        avatarStyle: 'background:#fcebf2;color:#141414',
+        bio: [
+          'On Jordan\'s team — leads attribution analytics.',
+          'Hired 5 months ago from Snap.',
+          'Active in the AdOps community on LinkedIn.',
+        ],
+        emails: [],
+        activity: [
+          { label: 'New contact', time: '6 days ago' },
+        ],
+        emailDraft: `<p>Hi Sam,</p>
+<p>Jordan suggested I reach out — sounds like you're owning the attribution analytics work at Reddit. Would love to share how teams in similar spots use Growzz to <span data-fm-src="company">centralize their revenue reporting</span>.</p>
+<p>Open to a 15-min chat next week?</p>
+<p>Best,<br>Gabby<br><strong>Growzz | Business Growth Platform</strong></p>`,
+      },
     ],
   },
 ];
 
-let fmCurrent = 0;
+let fmCompanyIdx = 0;     // active company (Nike, Reddit, …)
+let fmCurrent = 0;        // active contact within the active company
 let fmSelectedKey = null;
 let fmSavedEmail = null;
 let fmLc = 0;
 const fmActiveCtx = new Set(['contact','company','activity','emails']);
 const fmThreads = {};
 
-const FM_BASE_EMAILS = [
-  // Richard Stegger
-  `<p>Hi Richard,</p>
-<p>Thanks so much — glad the team enjoyed the demo. I'd love to set up a pricing review call this week.</p>
-<p>For a crew the size of <span data-fm-src="company">Horizonyte's</span>, most subcontractors in your space start on our Pro tier — I can walk through what that looks like for your <span data-fm-src="contact activity">project managers and field team</span>. I'll also bring a comparison with our base tier since you mentioned wanting to scale reporting.</p>
-<p><span data-fm-src="emails">Would Thursday at 2pm work?</span> Here's a <a href="#" style="color:#0091ae">link</a> to grab time.</p>
-<p>Best,<br>Gabby<br><strong>Growzz | Business Growth Platform</strong></p>`,
-
-  // Dana Choi
-  `<p>Hi Dana,</p>
-<p>I noticed Horizonyte has been tracking project costs in spreadsheets — our platform can centralize that reporting automatically.</p>
-<p>Given your <span data-fm-src="company">60-person team</span> and <span data-fm-src="activity">recent growth trajectory</span>, I think there's a clear ROI case here. Happy to walk through numbers on a 20-min call.</p>
-<p>Does Thursday work?</p>
-<p>Best,<br>Gabby<br><strong>Growzz | Business Growth Platform</strong></p>`,
-
-  // Marcus Webb
-  `<p>Hi Marcus,</p>
-<p>I heard from Devon that <span data-fm-src="emails">field team workflows</span> were top of mind — that's exactly where Growzz shines.</p>
-<p>We've helped similar <span data-fm-src="company">subcontractors in the NY metro</span> cut project coordination time by ~30%. Would love to show you a quick demo tailored to <span data-fm-src="contact">your team's setup</span>.</p>
-<p>Open to a call this week?</p>
-<p>Best,<br>Gabby<br><strong>Growzz | Business Growth Platform</strong></p>`,
-];
+function getCompany() { return FM_COMPANIES[fmCompanyIdx]; }
+function getContact() { return getCompany().contacts[fmCurrent]; }
 
 const FM_PROMPTS = {
   contact: [
@@ -5253,6 +6108,9 @@ const FM_RESULTS = {
     html: `<div style="font-size:12.5px;color:#666;line-height:1.65">Dear Richard,<br><br>Thank you for your team's engagement with our recent demonstration. I would welcome the opportunity to present our pricing structure at your earliest convenience.<br><br>Best regards,<br>Gabby</div>`,
   },
 };
+// Expose to window so other script blocks (e.g. the Breeze chat IIFE) can read them.
+window.FM_PROMPTS = FM_PROMPTS;
+window.FM_RESULTS = FM_RESULTS;
 
 // ── OPEN / CLOSE ──────────────────────────────────────────────────────────────
 window.openFocusMode = function() {
@@ -5275,6 +6133,7 @@ document.getElementById('focusModeOverlay').addEventListener('click', function(e
 });
 
 function fmReset() {
+  fmCompanyIdx = 0;
   fmCurrent = 0;
   fmSelectedKey = null;
   fmSavedEmail = null;
@@ -5282,21 +6141,13 @@ function fmReset() {
   fmActiveCtx.clear();
   ['contact','company','activity','emails'].forEach(k => fmActiveCtx.add(k));
   Object.keys(fmThreads).forEach(k => delete fmThreads[k]);
-  document.querySelectorAll('#focusModeOverlay .fm-tab').forEach((t,i) => t.classList.toggle('active', i===0));
-  document.getElementById('fmRecipientName').textContent = FM_CONTACTS[0].name;
-  document.getElementById('fmRecipientEmail').textContent = FM_CONTACTS[0].email;
-  document.getElementById('fmSubject').textContent = FM_CONTACTS[0].subject;
-  fmRenderContextCards(0);
+  fmRenderTabs();
+  fmRenderCompany();
+  fmRenderContact(0);
   document.getElementById('fmOmnibarChip').textContent = 'about this outreach';
   document.getElementById('fmChatTitle').textContent = 'Ask Breeze';
   document.getElementById('fmSidebarTitle').textContent = 'Ask Breeze';
-  document.getElementById('fmFooterNav').textContent = '1 of 3 contacts';
-  document.getElementById('fmBackBtn').disabled = true;
-  document.getElementById('fmBackBtn').style.opacity = '.4';
-  document.getElementById('fmBackBtn').style.cursor = 'default';
-  document.getElementById('fmNextBtn').disabled = false;
-  document.getElementById('fmNextBtn').style.opacity = '';
-  document.getElementById('fmNextBtn').style.cursor = '';
+  fmUpdateFooter();
   document.querySelectorAll('#focusModeOverlay .fm-card').forEach(c => {
     c.classList.remove('selected');
     const cb = c.querySelector('.fm-card-check');
@@ -5307,18 +6158,73 @@ function fmReset() {
   document.getElementById('fmChatPanel').classList.remove('open','has-messages');
   document.getElementById('fmSidebar').classList.remove('active');
   document.getElementById('fmGroup').classList.remove('fm-sidebar-pinned');
-  document.getElementById('fmSendBtn').textContent = 'Send';
+  document.getElementById('fmSendBtn').textContent = 'Start Outreach';
   document.getElementById('fmSendBtn').disabled = false;
   document.getElementById('fmSendBtn').style.background = '';
   fmUpdatePrompts('default');
+}
+
+function fmUpdateFooter() {
+  document.getElementById('fmFooterNav').textContent =
+    `${fmCompanyIdx + 1} of ${FM_COMPANIES.length} companies`;
+  const back = document.getElementById('fmBackBtn');
+  const next = document.getElementById('fmNextBtn');
+  back.disabled = fmCompanyIdx === 0;
+  back.style.opacity = fmCompanyIdx === 0 ? '.4' : '';
+  back.style.cursor  = fmCompanyIdx === 0 ? 'default' : '';
+  next.disabled = false;
+  next.style.opacity = '';
+  next.style.cursor = '';
+}
+
+// Render contact tabs from the active company; preserves the filter dropdown.
+function fmRenderTabs() {
+  const nav = document.querySelector('#focusModeOverlay .fm-tabs');
+  if (!nav) return;
+  nav.querySelectorAll('.fm-tab').forEach(t => t.remove());
+  getCompany().contacts.forEach((contact, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'fm-tab' + (i === fmCurrent ? ' active' : '');
+    btn.setAttribute('onclick', `fmSwitchTab(this,${i})`);
+    btn.textContent = contact.name;
+    nav.appendChild(btn);
+  });
+}
+
+// Render header + company card from the active company (called on company switch)
+function fmRenderCompany() {
+  const co = getCompany();
+  const t = document.getElementById('fmHeaderTitle');
+  if (t) t.textContent = `Outreach to ${co.company}`;
+  const tagsEl = document.getElementById('fmSignalTags');
+  if (tagsEl && co.signals) {
+    tagsEl.innerHTML = co.signals.map(s => `<span class="fm-signal-tag">${s.label}</span>`).join('');
+  }
+  const ca = document.getElementById('fmCompanyAvatar');
+  if (ca) {
+    ca.textContent = co.companyAvatar;
+    if (co.companyAvatarStyle) ca.setAttribute('style', co.companyAvatarStyle);
+  }
+  const cn = document.getElementById('fmCompanyName');
+  if (cn) cn.textContent = co.company;
+  const cr = document.getElementById('fmCompanyRole');
+  if (cr) cr.textContent = co.companyRole || '';
+  const cb = document.getElementById('fmCompanyBody');
+  if (cb && co.companyBody) cb.innerHTML = co.companyBody;
 }
 
 
 // ── CONTEXT CARDS ─────────────────────────────────────────────────────────────
 const FM_CHEVRON = '<svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor"><path d="m23.52,15.26c-.06-.11-.12-.21-.19-.3h0s-.11-.17-.11-.17c0-.01,0-.03,0-.04s0-.03,0-.04h0S11.57,2.5,11.57,2.5c-.32-.31-.75-.5-1.23-.5-.97,0-1.75.78-1.75,1.75,0,.43.15.82.41,1.13h0s10.5,11.02,10.5,11.02l-10.5,11.03c-.37.32-.59.79-.59,1.32,0,.97.78,1.75,1.75,1.75.55,0,1.05-.26,1.37-.66h0s11.65-12.2,11.65-12.2c0-.01,0-.03,0-.04s0-.03,0-.04h0s.11-.18.11-.18c.07-.09.13-.19.18-.29h0c.03-.1.05-.21.07-.32h0c.03-.1.05-.22.06-.33h0c0-.13-.03-.24-.06-.35h0s0-.03,0-.05c0-.1,0-.2-.02-.29h0s0,0,0,0Z"/></svg>';
 
-function fmRenderContextCards(idx) {
-  const c = FM_CONTACTS[idx];
+// Render contact-level cards (contact, emails, activity) + recipient/subject.
+function fmRenderContact(idx) {
+  fmCurrent = idx;
+  const c = getCompany().contacts[idx];
+
+  document.getElementById('fmRecipientName').textContent  = c.name;
+  document.getElementById('fmRecipientEmail').textContent = c.email;
+  document.getElementById('fmSubject').textContent        = c.subject;
 
   const avatar = document.getElementById('fmContactAvatar');
   avatar.textContent = c.initials;
@@ -5348,36 +6254,36 @@ function fmRenderContextCards(idx) {
   ).join('');
 }
 
-// ── TABS ──────────────────────────────────────────────────────────────────────
+// ── TABS (contact-level switch within active company) ────────────────────────
 window.fmSwitchTab = function(btn, idx) {
-  fmCurrent = idx;
   document.querySelectorAll('#focusModeOverlay .fm-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  const c = FM_CONTACTS[idx];
-  document.getElementById('fmRecipientName').textContent = c.name;
-  document.getElementById('fmRecipientEmail').textContent = c.email;
-  document.getElementById('fmSubject').textContent = c.subject;
-  document.getElementById('fmFooterNav').textContent = `${idx+1} of 3 contacts`;
-  document.getElementById('fmBackBtn').disabled = idx === 0;
-  document.getElementById('fmBackBtn').style.opacity = idx === 0 ? '.4' : '';
-  document.getElementById('fmBackBtn').style.cursor = idx === 0 ? 'default' : '';
-  document.getElementById('fmNextBtn').disabled = false;
-  fmRenderContextCards(idx);
+  fmRenderContact(idx);
   fmRenderEmail();
 };
 
+// ── NAVIGATE (company-level switch) ──────────────────────────────────────────
 window.fmNavigate = function(dir) {
-  const tabs = document.querySelectorAll('#focusModeOverlay .fm-tab');
-  const next = fmCurrent + dir;
+  const next = fmCompanyIdx + dir;
   if (next < 0) return;
-  if (next >= FM_CONTACTS.length) { closeFocusMode(); setTimeout(() => showDealToast(), 120); return; }
-  fmSwitchTab(tabs[next], next);
+  if (next >= FM_COMPANIES.length) {
+    closeFocusMode();
+    setTimeout(() => showDealToast(), 120);
+    return;
+  }
+  fmCompanyIdx = next;
+  fmCurrent = 0;
+  fmRenderTabs();
+  fmRenderCompany();
+  fmRenderContact(0);
+  fmRenderEmail();
+  fmUpdateFooter();
 };
 
 // ── EMAIL ──────────────────────────────────────────────────────────────────────
 function fmRenderEmail() {
   const body = document.getElementById('fmEmailBody');
-  body.innerHTML = FM_BASE_EMAILS[fmCurrent];
+  body.innerHTML = getContact().emailDraft;
   body.querySelectorAll('[data-fm-src]').forEach(el => el.classList.add('fm-src'));
   if (fmSelectedKey) fmHighlight(fmSelectedKey);
 }
@@ -5500,9 +6406,9 @@ window.fmAddContext = function(cardId, title, ctxKey, btn) {
   newCard.className = 'fm-card';
   newCard.dataset.fmTitle = title;
   newCard.dataset.fmKey = ctxKey;
-  newCard.innerHTML = `<div class="fm-card-hdr"><div class="fm-meta"><div><div class="fm-card-name">${title}</div></div></div>
+  newCard.innerHTML = `<div class="fm-card-hdr" style="padding:18px 16px 0 20px"><div class="fm-meta"><div><div class="fm-card-name">${title}</div></div></div>
     <button class="fm-card-check" onclick="fmToggleCard(this)"><svg viewBox="0 0 32 32" fill="currentColor"><path d="M14.13,21.5c-.29,0-.58-.11-.81-.33l-4.99-4.99c-.45-.45-.45-1.17,0-1.62.45-.45,1.17-.45,1.62,0l4.18,4.18,7.91-7.92c.45-.45,1.17-.45,1.62,0,.45.45.45,1.17,0,1.62l-8.72,8.72c-.22.22-.52.33-.81.33Z"/></svg></button>
-  </div><div class="fm-card-body" style="padding-top:8px">${bodyHTML}</div>
+  </div><div class="fm-card-body" style="padding:10px 20px 18px">${bodyHTML}</div>
   <div class="fm-card-resize"><svg viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="9" y1="3" x2="3" y2="9"/><line x1="9" y1="6" x2="6" y2="9"/></svg></div>`;
   newCard.style.cssText = 'opacity:0;transform:translateY(8px)';
   target.appendChild(newCard);
@@ -5816,12 +6722,1143 @@ window.goToDeals = function() {
     const iv = setInterval(() => { if (wire() || ++tries > 20) clearInterval(iv); }, 100);
   }
 })();
+
+/* ── Breeze FAB + greeting bubble ─────────────────────────────── */
+(function () {
+  const fab    = document.getElementById('breezeFab');
+  const bubble = document.getElementById('breezeGreetBubble');
+  const yesBtn = document.getElementById('breezeGreetYes');
+  const noBtn  = document.getElementById('breezeGreetNo');
+  const xBtn   = document.getElementById('breezeGreetClose');
+  if (!fab || !bubble) return;
+
+  function showBubble() {
+    bubble.classList.add('visible');
+    fab.classList.remove('has-pulse');
+  }
+  function hideBubble() {
+    bubble.classList.remove('visible');
+  }
+
+  // Auto-open the Breeze chat directly (skip the bubble).
+  // The FAB+bubble flow remains available — clicking the FAB after closing
+  // the chat will pop the bubble for re-engagement.
+  setTimeout(() => {
+    if (typeof window.openBreezeChat === 'function') window.openBreezeChat();
+  }, 200);
+
+  fab.addEventListener('click', () => {
+    // FAB click reopens the existing chat directly. The bubble flow stays
+    // available via showBubble()/hideBubble() for other entry points.
+    hideBubble();
+    if (typeof window.openBreezeChat === 'function') {
+      window.openBreezeChat();
+    }
+  });
+
+  noBtn.addEventListener('click', hideBubble);
+  xBtn.addEventListener('click', hideBubble);
+
+  yesBtn.addEventListener('click', () => {
+    hideBubble();
+    if (typeof window.openBreezeChat === 'function') window.openBreezeChat();
+  });
+})();
+
+/* ── Breeze chat sidebar (M2) ─────────────────────────────────── */
+(function () {
+  const sidebar = document.getElementById('breezeChatSidebar');
+  const closeBtn = document.getElementById('breezeChatClose');
+  const findMore = document.getElementById('bcsFindMore');
+  const refine   = document.getElementById('bcsRefine');
+  const startOut = document.getElementById('bcsStartOutreach');
+  const backBtn  = document.getElementById('bcsBack');
+  const titleEl  = document.getElementById('bcsTitle');
+  const stripEl  = document.getElementById('bcsThreadsStrip');
+  const msgsEl   = document.getElementById('breezeChatMessages');
+  if (!sidebar) return;
+
+  // ── Thread registry ──
+  const SVG_SPARKLE = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 0L12.2 7.8L20 10L12.2 12.2L10 20L7.8 12.2L0 10L7.8 7.8Z"/></svg>';
+  const breezeThreads = {
+    home: { id: 'home', title: 'Breeze', closeable: false }
+  };
+  let activeBreezeThread = 'home';
+
+  function botMsg(html) {
+    return `<div class="bcs-msg">
+      <span class="bcs-msg-avatar">${SVG_SPARKLE}</span>
+      <div class="bcs-msg-bubble">${html}</div>
+    </div>`;
+  }
+  function botBlock(html) {
+    // Bot message with a transparent bubble for embedding cards / forms
+    return `<div class="bcs-msg">
+      <span class="bcs-msg-avatar">${SVG_SPARKLE}</span>
+      <div class="bcs-msg-bubble" style="background:transparent;padding:0;">${html}</div>
+    </div>`;
+  }
+
+  function openThread(id, opts) {
+    if (!breezeThreads[id]) {
+      const thread = {
+        id,
+        title: opts.title,
+        closeable: opts.closeable !== false,
+      };
+      breezeThreads[id] = thread;
+      const el = document.createElement('div');
+      el.className = 'bcs-thread';
+      el.setAttribute('data-thread', id);
+      el.innerHTML = opts.contentHtml || '';
+      msgsEl.appendChild(el);
+      thread.element = el;
+      if (typeof opts.setup === 'function') opts.setup(el);
+    }
+    switchThread(id);
+  }
+
+  function switchThread(id) {
+    if (!breezeThreads[id]) return;
+    msgsEl.querySelectorAll('.bcs-thread').forEach(t => t.removeAttribute('data-active'));
+    const el = msgsEl.querySelector(`.bcs-thread[data-thread="${id}"]`);
+    if (el) el.setAttribute('data-active', 'true');
+    activeBreezeThread = id;
+    sidebar.setAttribute('data-active-thread', id);
+    titleEl.textContent = breezeThreads[id].title;
+    renderThreadStrip();
+    updateSuggestionsForActiveThread();
+    setOutreachPanelVisible(id === 'outreach');
+  }
+
+  // Slide the focus-mode panel out/in (without closing the session) when the
+  // user navigates between the Outreach thread and another thread.
+  // Hide  = modal slides out, then index panel fades back in (~650ms).
+  // Show  = index panel fades out, then modal slides back in (~650ms).
+  function setOutreachPanelVisible(visible) {
+    const overlay = document.getElementById('focusModeOverlay');
+    if (!overlay || !overlay.classList.contains('bcs-mode')) return; // no active session
+    const modal = document.getElementById('fmModal');
+    if (!modal) return;
+    clearTimeout(modal._bcsVisTimer);
+    if (visible) {
+      // 1) Fade the index panel out
+      document.body.classList.add('bcs-mode-active');
+      // 2) After the fade, slide the modal back in
+      modal._bcsVisTimer = setTimeout(() => {
+        modal.style.transition = 'transform .42s cubic-bezier(.2,.8,.3,1), opacity .25s ease';
+        modal.style.transform = 'translateX(0)';
+        modal.style.opacity = '1';
+      }, 240);
+    } else {
+      // 1) Slide the modal out
+      modal.style.transition = 'transform .42s cubic-bezier(.4,0,.6,1), opacity .25s ease';
+      modal.style.transform = 'translateX(-100%)';
+      modal.style.opacity = '0';
+      // 2) Fade the index panel back in slightly before the slide finishes
+      //    so the two motions feel connected instead of sequential.
+      modal._bcsVisTimer = setTimeout(() => {
+        document.body.classList.remove('bcs-mode-active');
+      }, 320);
+    }
+  }
+
+  function closeThread(id) {
+    const t = breezeThreads[id];
+    if (!t || !t.closeable) return;
+    if (t.element) t.element.remove();
+    delete breezeThreads[id];
+    if (activeBreezeThread === id) {
+      switchThread('home');
+    } else {
+      renderThreadStrip();
+    }
+  }
+
+  function renderThreadStrip() {
+    const subThreads = Object.values(breezeThreads).filter(t => t.id !== 'home');
+    if (!subThreads.length) {
+      stripEl.hidden = true;
+      stripEl.innerHTML = '';
+      return;
+    }
+    stripEl.hidden = false;
+    stripEl.innerHTML = subThreads.map(t => {
+      const active = t.id === activeBreezeThread ? ' data-active="true"' : '';
+      return `<div class="bcs-thread-pill" data-thread-id="${t.id}"${active}>
+        <span class="bcs-thread-pill-label">${t.title}</span>
+        <button class="bcs-thread-pill-close" data-close-thread aria-label="Close ${t.title}">
+          <svg viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+  }
+
+  // Strip event delegation
+  stripEl?.addEventListener('click', (e) => {
+    const pill = e.target.closest('.bcs-thread-pill');
+    if (!pill) return;
+    const id = pill.dataset.threadId;
+    if (e.target.closest('[data-close-thread]')) {
+      closeThread(id);
+    } else {
+      switchThread(id);
+    }
+  });
+
+  // Back button → return to Home (sub-thread stays open)
+  backBtn?.addEventListener('click', () => switchThread('home'));
+
+  // Expose for any caller that wants to spawn a thread programmatically
+  window.openBreezeThread  = openThread;
+  window.switchBreezeThread = switchThread;
+  window.closeBreezeThread  = closeThread;
+
+  // ── Outreach thread (in-chat, mirrors focus-mode-outreach card behavior) ──
+  function getOutreachThread() {
+    return msgsEl.querySelector('.bcs-thread[data-thread="outreach"]');
+  }
+
+  function openOutreachThread(companyName) {
+    const intro = companyName
+      ? `<p>Welcome to the outreach session for <strong>${companyName}</strong>.</p>`
+      : `<p>Welcome to your outreach session.</p>`;
+    openThread('outreach', {
+      title: 'Outreach',
+      contentHtml: botMsg(`${intro}
+        <p style="margin-top:6px;color:#666;font-size:12px;">Select any context card on the left to chat about it — Breeze will surface the relevant details and quick actions here.</p>`),
+      setup: wireOutreachThread,
+    });
+  }
+
+  // Replaces any existing card-focus-block with a fresh one for the new card.
+  // Past user bubbles + result cards above remain in the conversation history.
+  function setOutreachActiveCard(cardKey, cardTitle) {
+    // Recreate the outreach thread if the user closed it
+    let thread = getOutreachThread();
+    if (!thread) {
+      openOutreachThread();
+      thread = getOutreachThread();
+      if (!thread) return;
+    }
+    if (activeBreezeThread !== 'outreach') switchThread('outreach');
+    outreachActiveCard = { key: cardKey, title: cardTitle };
+    updateSuggestionsForActiveThread();
+  }
+
+  function clearOutreachActiveCard() {
+    outreachActiveCard = null;
+    if (activeBreezeThread === 'outreach') updateSuggestionsForActiveThread();
+  }
+
+  // Click on a prompt pill → user bubble + loading dots + result card.
+  // The pills now live in the suggestion stack above the composer, so the
+  // result messages append to the end of the thread normally.
+  function runOutreachPrompt(promptKey, btn) {
+    const thread = getOutreachThread();
+    if (!thread) return;
+
+    const label = btn.querySelector('span')?.textContent.trim() || btn.textContent.trim();
+
+    const userMsg = document.createElement('div');
+    userMsg.className = 'bcs-msg user';
+    userMsg.innerHTML = `<div class="bcs-msg-bubble-user">${label}</div>`;
+    thread.appendChild(userMsg);
+
+    const dotsMsg = document.createElement('div');
+    dotsMsg.className = 'bcs-msg';
+    dotsMsg.innerHTML = `
+      <span class="bcs-msg-avatar">${SVG_SPARKLE}</span>
+      <div class="bcs-msg-dots"><span></span><span></span><span></span></div>
+    `;
+    thread.appendChild(dotsMsg);
+    thread.scrollTop = thread.scrollHeight;
+
+    setTimeout(() => {
+      dotsMsg.remove();
+      const r = window.FM_RESULTS && window.FM_RESULTS[promptKey];
+      if (!r) return;
+      const cardId = 'bcsrc-' + Date.now();
+      const safeTitle = String(r.title || '').replace(/'/g, "\\'");
+      const addBtn = r.ctxKey
+        ? `<button class="fm-add-btn" onclick="fmAddContext('${cardId}','${safeTitle}','${r.ctxKey}',this)">+ Add to context</button>`
+        : '';
+      const resultMsg = document.createElement('div');
+      resultMsg.className = 'bcs-msg';
+      resultMsg.innerHTML = `
+        <span class="bcs-msg-avatar">${SVG_SPARKLE}</span>
+        <div class="bcs-msg-bubble" style="background:transparent;padding:0;">
+          <div class="bcs-result-card" id="${cardId}">
+            <div class="bcs-result-card-hdr">
+              <span class="bcs-result-card-hdr-title">${r.title}</span>
+              ${addBtn}
+            </div>
+            <div class="fm-result-body">${r.html}</div>
+          </div>
+        </div>`;
+      thread.appendChild(resultMsg);
+      thread.scrollTop = thread.scrollHeight;
+    }, 900);
+  }
+
+  function wireOutreachThread(_threadEl) {
+    // Prompt clicks now arrive via the suggestion-stack delegation listener.
+    // Kept as a no-op to preserve the openThread() setup signature.
+  }
+
+  window.openBreezeOutreachThread       = openOutreachThread;
+  window.setBreezeOutreachActiveCard    = setOutreachActiveCard;
+  window.clearBreezeOutreachActiveCard  = clearOutreachActiveCard;
+
+  window.openBreezeChat = function () {
+    document.body.classList.add('breeze-chat-active');
+    sidebar.classList.add('open');
+    // If focus mode is open, snap it back to its chat-aware position
+    const overlay = document.getElementById('focusModeOverlay');
+    if (overlay) overlay.classList.remove('full-width');
+    // Pulse highlights on Nike + Reddit (existing system)
+    if (typeof window.applyHighlight === 'function') {
+      window.applyHighlight('prospect');
+      if (typeof window.updateRailActiveStates === 'function') {
+        window.updateRailActiveStates();
+      }
+    }
+  };
+
+  window.closeBreezeChat = function () {
+    sidebar.classList.remove('open');
+    document.body.classList.remove('breeze-chat-active');
+    // If focus mode is open, expand it to fill the space the chat just freed
+    const overlay = document.getElementById('focusModeOverlay');
+    if (overlay && overlay.classList.contains('bcs-mode')) {
+      overlay.classList.add('full-width');
+    }
+    if (typeof window.applyHighlight === 'function') {
+      window.applyHighlight(null);
+      if (typeof window.updateRailActiveStates === 'function') {
+        window.updateRailActiveStates();
+      }
+    }
+  };
+
+  closeBtn?.addEventListener('click', window.closeBreezeChat);
+
+  // Suggestion stack toggle
+  const suggWrap   = document.getElementById('bcsSuggestions');
+  const suggToggle = document.getElementById('bcsSuggestionsToggle');
+  suggToggle?.addEventListener('click', () => {
+    const collapsed = suggWrap.classList.toggle('collapsed');
+    suggToggle.setAttribute('aria-expanded', String(!collapsed));
+  });
+
+  // ── Per-thread suggestion stack ───────────────────────────────
+  const suggLabel = suggToggle?.querySelector('span');
+  const suggList  = document.getElementById('bcsSuggestionsList');
+  const HOME_SUGG_LABEL = 'Suggestions';
+  const HOME_SUGG_HTML  = suggList ? suggList.innerHTML : '';
+
+  // Active card on the focus-mode panel (drives the Outreach thread's prompts)
+  let outreachActiveCard = null; // { key, title } | null
+
+  function setSuggestions(label, listHTML) {
+    if (!suggWrap || !suggLabel || !suggList) return;
+    if (label == null) { suggWrap.hidden = true; return; }
+    suggWrap.hidden = false;
+    suggLabel.textContent = label;
+    suggList.innerHTML = listHTML;
+  }
+
+  function outreachPromptsHTML(cardKey) {
+    const prompts = (window.FM_PROMPTS && window.FM_PROMPTS[cardKey]) || [];
+    if (!prompts.length) return '';
+    const arrow = '<svg class="bcs-suggestion-chip-trail" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3l3 3-3 3"/></svg>';
+    return prompts.map(p =>
+      `<button class="bcs-suggestion-chip" data-card-prompt="${p.key}"><span>${p.label}</span>${arrow}</button>`
+    ).join('');
+  }
+
+  function updateSuggestionsForActiveThread() {
+    if (activeBreezeThread === 'home') {
+      setSuggestions(HOME_SUGG_LABEL, HOME_SUGG_HTML);
+    } else if (activeBreezeThread === 'outreach' && outreachActiveCard) {
+      setSuggestions(`Asking about ${outreachActiveCard.title}`, outreachPromptsHTML(outreachActiveCard.key));
+    } else {
+      setSuggestions(null, '');
+    }
+  }
+
+  // Click delegation on the suggestion stack — IDs/data-attrs route to the right action
+  suggList?.addEventListener('click', (e) => {
+    if (e.target.closest('#bcsFindMore'))      return handleFindMoreClick();
+    if (e.target.closest('#bcsRefine'))        return handleRefineClick();
+    if (e.target.closest('#bcsStartOutreach')) return handleStartOutreachClick();
+    const promptBtn = e.target.closest('[data-card-prompt]');
+    if (promptBtn) runOutreachPrompt(promptBtn.dataset.cardPrompt, promptBtn);
+  });
+
+  // ── Find more like this — JIT candidate list ──
+  const FIND_MORE_CANDIDATES = [
+    {
+      id: 'adidas', avatar: 'A', avatarBg: '#daefe1',
+      name: 'Adidas',
+      industry: 'Apparel & footwear',
+      city: 'Herzogenaurach, DE',
+      phone: '+49 9132 84-0',
+      meta: 'Apparel & footwear · 60K employees',
+      desc: 'Recent supply-chain modernization push and ongoing analytics-platform RFP.',
+      tags: [
+        { label: 'Funding event', bg: '#fcf6e6' },
+        { label: 'Research signal', bg: '#efeefd' },
+      ],
+    },
+    {
+      id: 'lululemon', avatar: 'L', avatarBg: '#fcf6e6',
+      name: 'Lululemon',
+      industry: 'Apparel & footwear',
+      city: 'Vancouver, BC',
+      phone: '604-732-6124',
+      meta: 'Apparel & footwear · 36K employees',
+      desc: "Athleisure leader scaling international ops; flagged adjacent to Nike's profile.",
+      tags: [
+        { label: 'Hire signal', bg: '#fcebf2' },
+        { label: 'Enterprise', bg: '#daefe1' },
+      ],
+    },
+    {
+      id: 'pinterest', avatar: 'P', avatarBg: '#fcebf2',
+      name: 'Pinterest',
+      industry: 'Social media',
+      city: 'San Francisco, CA',
+      phone: '415-762-7100',
+      meta: 'Social media · ~4K employees',
+      desc: "Engagement-side investments mirror Reddit's monetization push.",
+      tags: [
+        { label: 'Visitor intent', bg: '#fcf6e6' },
+        { label: 'Hire signal', bg: '#fcebf2' },
+      ],
+    },
+    {
+      id: 'tiktok', avatar: 'T', avatarBg: '#efeefd',
+      name: 'TikTok',
+      industry: 'Social media',
+      city: 'Los Angeles, CA',
+      phone: '650-275-9700',
+      meta: 'Social media · 7K US employees',
+      desc: "Hiring revenue & ad-tech roles in the US — mirrors Reddit's monetization signals.",
+      tags: [
+        { label: 'Hire signal', bg: '#fcebf2' },
+        { label: 'Visitor intent', bg: '#fcf6e6' },
+      ],
+    },
+    {
+      id: 'spotify', avatar: 'S', avatarBg: '#daefe1',
+      name: 'Spotify',
+      industry: 'Media',
+      city: 'New York, NY',
+      phone: '212-651-9000',
+      meta: 'Media · 8K employees',
+      desc: 'Recent ad-revenue restructuring and hiring around partnerships.',
+      tags: [
+        { label: 'Research signal', bg: '#efeefd' },
+        { label: 'Enterprise', bg: '#daefe1' },
+      ],
+    },
+  ];
+
+  // Insert candidate companies as rows at the top of the All companies table.
+  // Skips any already present. Returns the candidates that were actually inserted.
+  function insertCandidatesIntoIndex(candidates) {
+    const allBody = document.querySelector('.idx-view[data-view="all"] .idx-table tbody');
+    if (!allBody) return [];
+    const existingNames = new Set(
+      Array.from(allBody.querySelectorAll('.idx-co-name-primary'))
+        .map(el => el.textContent.trim().toLowerCase())
+    );
+    const inserted = [];
+    candidates.forEach(c => {
+      if (existingNames.has(c.name.toLowerCase())) return;
+      const tr = document.createElement('tr');
+      tr.className = 'idx-tr idx-tr-just-added';
+      tr.innerHTML = `
+        <td class="idx-td"><div class="idx-cb"></div></td>
+        <td class="idx-td co-primary"><div class="idx-company"><div class="idx-co-logo" style="background:${c.avatarBg}">${c.avatar}</div><span class="idx-co-name-primary">${c.name}</span></div></td>
+        <td class="idx-td" data-col="owner"><div class="idx-owner"><div class="idx-av av-teal">G</div><span>Gabby Henson</span></div></td>
+        <td class="idx-td muted" data-col="create-date">Apr 29, 2025 02:30 PM EST</td>
+        <td class="idx-td muted" data-col="phone">${c.phone || '—'}</td>
+        <td class="idx-td muted" data-col="location">${c.city || '—'}</td>
+        <td class="idx-td muted" data-col="last-activity">—</td>
+        <td class="idx-td muted" data-col="industry">${c.industry || ''}</td>
+      `;
+      allBody.insertBefore(tr, allBody.firstChild);
+      existingNames.add(c.name.toLowerCase());
+      inserted.push(c);
+    });
+    return inserted;
+  }
+
+  const ICON_PLUS  = '<svg class="bcs-cand-icon-add" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="7" y1="3" x2="7" y2="11"/><line x1="3" y1="7" x2="11" y2="7"/></svg>';
+  const ICON_CHECK = '<svg class="bcs-cand-icon-check" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M2 7l3 3 7-7"/></svg>';
+
+  function candidatesHTML(list) {
+    return `<div class="bcs-card-list bcs-cand-list">${
+      list.map(c => `
+        <div class="php-card bcs-cand-card" data-cand-id="${c.id}">
+          <div class="php-card-header">
+            <div class="php-avatar" style="background:${c.avatarBg}">${c.avatar}</div>
+            <span class="php-company-name">${c.name}</span>
+            <button class="bcs-cand-toggle" data-cand-toggle="${c.id}" aria-pressed="false" aria-label="Add ${c.name}">
+              ${ICON_PLUS}${ICON_CHECK}
+            </button>
+          </div>
+          <div class="bcs-cand-meta">${c.meta}</div>
+          <p class="php-desc">${c.desc}</p>
+          <div class="php-tags">${
+            c.tags.map(t => `<span class="php-tag" style="background:${t.bg}">${t.label}</span>`).join('')
+          }</div>
+        </div>
+      `).join('')
+    }</div>`;
+  }
+
+  function updateAddCount(threadEl) {
+    const status = threadEl.querySelector('[data-cand-status]');
+    const addBtn = threadEl.querySelector('[data-cand-action="add"]');
+    const n = threadEl.querySelectorAll('.bcs-cand-card[data-selected="true"]').length;
+    if (status) status.textContent = `${n} selected`;
+    if (addBtn) {
+      addBtn.disabled = n === 0;
+      addBtn.textContent = n ? `Add ${n}` : 'Add';
+    }
+  }
+
+  function renderCandidatesIntoZone(zone, list) {
+    const token = (zone._jitToken = (zone._jitToken || 0) + 1);
+    zone.classList.remove('bcs-form-fading');
+    zone.innerHTML = THINKING_HTML;
+    setTimeout(() => {
+      if (zone._jitToken !== token) return;
+      zone.innerHTML = candidatesHTML(list);
+      zone.classList.remove('bcs-form-fading');
+      void zone.offsetWidth;
+      zone.classList.add('bcs-form-fading');
+    }, 700);
+  }
+
+  function wireFindMoreThread(threadEl) {
+    threadEl.addEventListener('click', (e) => {
+      const toggle = e.target.closest('[data-cand-toggle]');
+      if (toggle) {
+        const card = toggle.closest('.bcs-cand-card');
+        const isSel = card.dataset.selected === 'true';
+        card.dataset.selected = isSel ? 'false' : 'true';
+        toggle.setAttribute('aria-pressed', isSel ? 'false' : 'true');
+        updateAddCount(threadEl);
+        return;
+      }
+      const action = e.target.closest('[data-cand-action]')?.dataset.candAction;
+      if (action === 'add') {
+        const sel = Array.from(threadEl.querySelectorAll('.bcs-cand-card[data-selected="true"]'));
+        if (!sel.length) return;
+        const ids = sel.map(c => c.dataset.candId);
+        const chosen = FIND_MORE_CANDIDATES.filter(c => ids.includes(c.id));
+        const inserted = insertCandidatesIntoIndex(chosen);
+        const dupes = chosen.length - inserted.length;
+        const home = msgsEl.querySelector('.bcs-thread[data-thread="home"]');
+        if (home) {
+          const wrap = document.createElement('div');
+          let html;
+          if (inserted.length === 0) {
+            html = botMsg(`<p>Already in your roster — nothing new to add.</p>
+              <p style="color:#666;font-size:12px;margin-top:4px;">${chosen.map(c => c.name).join(', ')}</p>`);
+          } else {
+            const names = inserted.map(c => c.name);
+            const dupeNote = dupes > 0
+              ? `<p style="color:#666;font-size:12px;margin-top:4px;">(${dupes} already in your roster, skipped.)</p>`
+              : '';
+            html = botMsg(
+              `<p>Added <strong>${names.length}</strong> ${names.length === 1 ? 'company' : 'companies'} to your roster ✓</p>
+               <p style="color:#666;font-size:12px;margin-top:4px;">${names.join(', ')}</p>
+               ${dupeNote}`
+            );
+          }
+          wrap.innerHTML = html;
+          home.appendChild(wrap.firstElementChild);
+          home.scrollTop = home.scrollHeight;
+        }
+        switchThread('home');
+      } else if (action === 'more') {
+        const zone = threadEl.querySelector('[data-cand-zone]');
+        if (zone) {
+          renderCandidatesIntoZone(zone, FIND_MORE_CANDIDATES);
+          // After re-render, status resets since cards lose their selected state
+          setTimeout(() => updateAddCount(threadEl), 720);
+        }
+      }
+    });
+  }
+
+  function handleFindMoreClick() {
+    openThread('find-more', {
+      title: 'Find more',
+      contentHtml:
+        botMsg(`<p>Looking at Nike &amp; Reddit's pattern. Surfacing more matches — pick the ones to add.</p>`) +
+        `<div class="bcs-cand-zone bcs-form-fading" data-cand-zone>${THINKING_HTML}</div>` +
+        `<div class="bcs-thread-actions" data-cand-actions style="display:none">
+           <span class="bcs-thread-actions-status" data-cand-status>0 selected</span>
+           <button class="bcs-form-btn" data-cand-action="more">Show more</button>
+           <button class="bcs-form-btn primary" data-cand-action="add" disabled>Add</button>
+         </div>`,
+      setup: (threadEl) => {
+        wireFindMoreThread(threadEl);
+        setTimeout(() => {
+          const zone = threadEl.querySelector('[data-cand-zone]');
+          const actions = threadEl.querySelector('[data-cand-actions]');
+          if (zone) {
+            zone.innerHTML = candidatesHTML(FIND_MORE_CANDIDATES);
+            zone.classList.remove('bcs-form-fading');
+            void zone.offsetWidth;
+            zone.classList.add('bcs-form-fading');
+          }
+          if (actions) actions.style.display = '';
+        }, 700);
+      },
+    });
+  }
+
+  // ── Refine criteria — single just-in-time card with contextual sections ──
+  const SVG_CHECK = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l3 3 7-7"/></svg>';
+  const REFINE_INDUSTRIES = [
+    'Apparel & footwear', 'Social media', 'SaaS', 'Healthcare',
+    'Finance', 'Manufacturing', 'Retail', 'Media',
+  ];
+  const SUB_INDUSTRIES = {
+    'Apparel & footwear': ['Athletic', 'Casual', 'Luxury', 'Outdoor', 'Sustainable'],
+    'Social media':       ['Platforms', 'Creator tools', 'Community', 'Ad-tech'],
+    'SaaS':               ['Horizontal', 'Vertical', 'DevTools', 'Analytics', 'Security'],
+    'Healthcare':         ['HealthTech', 'Biotech', 'Pharma', 'Medical devices', 'Provider networks'],
+    'Finance':            ['Banks', 'FinTech', 'Insurance', 'Capital markets'],
+    'Manufacturing':      ['Industrial', 'Automotive', 'Aerospace', 'Consumer goods'],
+    'Retail':             ['Brick & mortar', 'E-commerce', 'Marketplace', 'D2C'],
+    'Media':              ['Publishing', 'Streaming', 'News', 'Gaming'],
+  };
+  const REFINE_DEFAULTS = {
+    strength: 'balanced',
+    industries: ['Apparel & footwear', 'Social media'],
+    size: 1000,
+    // Balanced-only
+    recency: '30',
+    signals: ['funding', 'hiring', 'research', 'visitor', 'engagement'],
+    // Conservative-only
+    conservativeRequire: ['industry-exact'],
+    conservativeMinSignals: 2,
+    // Broad-only
+    broadExpand: ['adjacent-industries'],
+    broadCap: 100,
+  };
+  const STRENGTH_LABELS = { conservative: 'Conservative', balanced: 'Balanced', broad: 'Broad' };
+  const RECENCY_LABELS  = { '7': 'Last 7d', '30': 'Last 30d', '90': 'Last 90d', 'all': 'Anytime' };
+  const SIGNAL_LABELS   = {
+    funding: 'Funding', hiring: 'Hiring', research: 'Research',
+    visitor: 'Visitor intent', engagement: 'Engagement',
+  };
+  const REQUIRE_OPTIONS = [
+    { value: 'industry-exact', label: 'Industry exact match' },
+    { value: 'revenue-band',   label: 'Same revenue band (±25%)' },
+    { value: 'closed-won',     label: 'Closed-won lookalike' },
+    { value: 'public-only',    label: 'Public companies only' },
+  ];
+  const EXPAND_OPTIONS = [
+    { value: 'adjacent-industries', label: 'Adjacent industries' },
+    { value: 'earlier-stage',       label: 'Earlier lifecycle stages' },
+    { value: 'weaker-signals',      label: 'Weaker signals' },
+    { value: 'peers-added',         label: "Companies your peers added" },
+  ];
+  function fmtSize(v) {
+    v = parseInt(v, 10);
+    if (v >= 1000) return `${(v/1000).toFixed(0)}k+ employees`;
+    return `${v}+ employees`;
+  }
+
+  function checkboxRow(controlKey, options, defaults) {
+    const items = options.map(o =>
+      `<label class="bcs-toggle">
+        <input type="checkbox" data-value="${o.value}" ${defaults.includes(o.value) ? 'checked' : ''}>
+        <span class="bcs-toggle-mark">${SVG_CHECK}</span>
+        <span class="bcs-toggle-text">${o.label}</span>
+      </label>`
+    ).join('');
+    return `<div class="bcs-toggle-group" data-control="${controlKey}">${items}</div>`;
+  }
+
+  function conditionalHTML(strength) {
+    const d = REFINE_DEFAULTS;
+    if (strength === 'conservative') {
+      return `
+        <div class="bcs-form-row">
+          <span class="bcs-form-row-label">Require</span>
+          ${checkboxRow('conservativeRequire', REQUIRE_OPTIONS, d.conservativeRequire)}
+        </div>
+        <div class="bcs-form-row">
+          <div class="bcs-form-row-head">
+            <span class="bcs-form-row-label">Min signals before suggesting</span>
+            <span class="bcs-form-row-readout" data-readout="conservativeMinSignals">${d.conservativeMinSignals} signals</span>
+          </div>
+          <input type="range" class="bcs-range" min="1" max="5" step="1" value="${d.conservativeMinSignals}" data-control="conservativeMinSignals">
+        </div>
+      `;
+    }
+    if (strength === 'broad') {
+      return `
+        <div class="bcs-form-row">
+          <span class="bcs-form-row-label">Expand into</span>
+          ${checkboxRow('broadExpand', EXPAND_OPTIONS, d.broadExpand)}
+        </div>
+        <div class="bcs-form-row">
+          <div class="bcs-form-row-head">
+            <span class="bcs-form-row-label">Cap candidates at</span>
+            <span class="bcs-form-row-readout" data-readout="broadCap">${d.broadCap}</span>
+          </div>
+          <input type="range" class="bcs-range" min="25" max="200" step="25" value="${d.broadCap}" data-control="broadCap">
+        </div>
+      `;
+    }
+    // balanced
+    const sigChips = Object.entries(SIGNAL_LABELS).map(([k, l]) =>
+      `<button class="bcs-form-chip${d.signals.includes(k) ? ' selected' : ''}" data-value="${k}">${l}</button>`
+    ).join('');
+    return `
+      <div class="bcs-form-row">
+        <span class="bcs-form-row-label">Signal recency</span>
+        <div class="bcs-segmented" data-control="recency">
+          <button class="bcs-segment${d.recency==='7'?' selected':''}" data-value="7">7d</button>
+          <button class="bcs-segment${d.recency==='30'?' selected':''}" data-value="30">30d</button>
+          <button class="bcs-segment${d.recency==='90'?' selected':''}" data-value="90">90d</button>
+          <button class="bcs-segment${d.recency==='all'?' selected':''}" data-value="all">Anytime</button>
+        </div>
+      </div>
+      <div class="bcs-form-row">
+        <span class="bcs-form-row-label">Signal types</span>
+        <div class="bcs-chip-group" data-control="signals">${sigChips}</div>
+      </div>
+    `;
+  }
+
+  function refineCardHTML() {
+    const d = REFINE_DEFAULTS;
+    const indChips = REFINE_INDUSTRIES.map(name =>
+      `<button class="bcs-form-chip${d.industries.includes(name) ? ' selected' : ''}" data-value="${name}">${name}</button>`
+    ).join('');
+
+    return `<div class="bcs-form" data-bcs-form="refine">
+      <div class="bcs-form-row">
+        <span class="bcs-form-row-label">Match strength</span>
+        <div class="bcs-segmented" data-control="strength">
+          <button class="bcs-segment${d.strength==='conservative'?' selected':''}" data-value="conservative">Conservative</button>
+          <button class="bcs-segment${d.strength==='balanced'?' selected':''}" data-value="balanced">Balanced</button>
+          <button class="bcs-segment${d.strength==='broad'?' selected':''}" data-value="broad">Broad</button>
+        </div>
+      </div>
+
+      <div class="bcs-form-conditional bcs-form-fading" data-bcs-conditional>${conditionalHTML(d.strength)}</div>
+
+      <div class="bcs-form-row">
+        <span class="bcs-form-row-label">Industries</span>
+        <div class="bcs-chip-group" data-control="industries">${indChips}</div>
+      </div>
+
+      <div class="bcs-form-row" data-bcs-subindustries${d.industries.length ? '' : ' style="display:none"'}>
+        <span class="bcs-form-row-label">Sub-categories</span>
+        <div data-subind-zone class="bcs-subind-zone bcs-form-fading">${subIndustriesHTML(d.industries)}</div>
+      </div>
+
+      <div class="bcs-form-row">
+        <div class="bcs-form-row-head">
+          <span class="bcs-form-row-label">Min company size</span>
+          <span class="bcs-form-row-readout" data-readout="size">${fmtSize(d.size)}</span>
+        </div>
+        <input type="range" class="bcs-range" min="0" max="100000" step="500" value="${d.size}" data-control="size">
+      </div>
+
+      <div class="bcs-form-actions">
+        <button class="bcs-form-btn" data-action="reset">Reset</button>
+        <button class="bcs-form-btn primary" data-action="apply">Apply</button>
+      </div>
+    </div>`;
+  }
+
+  function readRefineCard(form) {
+    const strength = form.querySelector('[data-control="strength"] .bcs-segment.selected')?.dataset.value || 'balanced';
+    const state = {
+      strength,
+      industries: Array.from(form.querySelectorAll('[data-control="industries"] .bcs-form-chip.selected')).map(c => c.dataset.value),
+      size: parseInt(form.querySelector('[data-control="size"]').value, 10),
+    };
+    if (strength === 'conservative') {
+      state.conservativeRequire = Array.from(form.querySelectorAll('[data-control="conservativeRequire"] input:checked')).map(i => i.dataset.value);
+      state.conservativeMinSignals = parseInt(form.querySelector('[data-control="conservativeMinSignals"]').value, 10);
+    } else if (strength === 'broad') {
+      state.broadExpand = Array.from(form.querySelectorAll('[data-control="broadExpand"] input:checked')).map(i => i.dataset.value);
+      state.broadCap = parseInt(form.querySelector('[data-control="broadCap"]').value, 10);
+    } else {
+      state.recency = form.querySelector('[data-control="recency"] .bcs-segment.selected')?.dataset.value || '30';
+      state.signals = Array.from(form.querySelectorAll('[data-control="signals"] .bcs-form-chip.selected')).map(c => c.dataset.value);
+    }
+    return state;
+  }
+
+  function summarizeRefine(s) {
+    const parts = [STRENGTH_LABELS[s.strength].toLowerCase()];
+    parts.push(s.industries.length ? `${s.industries.length} industries` : 'any industry');
+    parts.push(fmtSize(s.size));
+    if (s.strength === 'conservative') {
+      parts.push(s.conservativeRequire.length ? `${s.conservativeRequire.length} required` : 'no extra requirements');
+      parts.push(`≥${s.conservativeMinSignals} signal${s.conservativeMinSignals === 1 ? '' : 's'}`);
+    } else if (s.strength === 'broad') {
+      parts.push(s.broadExpand.length ? `expand into ${s.broadExpand.length}` : 'no expansion');
+      parts.push(`cap at ${s.broadCap}`);
+    } else {
+      parts.push(RECENCY_LABELS[s.recency].toLowerCase());
+      parts.push(s.signals.length === 5 ? 'all signals' : `${s.signals.length} signal types`);
+    }
+    return parts.join(' · ');
+  }
+
+  // Brief "Breeze is generating" state shown while we fake the JIT compute.
+  const THINKING_HTML = `<div class="bcs-form-thinking">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 0L12.2 7.8L20 10L12.2 12.2L10 20L7.8 12.2L0 10L7.8 7.8Z"/></svg>
+    <span>Generating</span>
+    <span class="bcs-form-thinking-dots"><span></span><span></span><span></span></span>
+  </div>`;
+
+  function subIndustriesHTML(selected) {
+    if (!selected || !selected.length) return '';
+    return `<div class="bcs-subind-groups">${
+      selected.map(industry => {
+        const subs = SUB_INDUSTRIES[industry] || [];
+        if (!subs.length) return '';
+        const chips = subs.map(s =>
+          `<button class="bcs-form-chip" data-sub-parent="${industry}" data-value="${s}">${s}</button>`
+        ).join('');
+        return `<div class="bcs-subind-group">
+          <span class="bcs-subind-group-name">${industry}</span>
+          <div class="bcs-chip-group">${chips}</div>
+        </div>`;
+      }).join('')
+    }</div>`;
+  }
+
+  function rerenderSubIndustries(form) {
+    const row  = form.querySelector('[data-bcs-subindustries]');
+    const zone = form.querySelector('[data-subind-zone]');
+    if (!row || !zone) return;
+    const selected = Array.from(form.querySelectorAll('[data-control="industries"] .bcs-form-chip.selected'))
+      .map(c => c.dataset.value);
+    const token = (zone._jitToken = (zone._jitToken || 0) + 1);
+
+    // No industries selected → fade-thinking briefly, then collapse the row
+    if (selected.length === 0) {
+      zone.classList.remove('bcs-form-fading');
+      zone.innerHTML = THINKING_HTML;
+      row.style.display = '';
+      setTimeout(() => {
+        if (zone._jitToken !== token) return;
+        row.style.display = 'none';
+        zone.innerHTML = '';
+      }, 320);
+      return;
+    }
+
+    row.style.display = '';
+    zone.classList.remove('bcs-form-fading');
+    zone.innerHTML = THINKING_HTML;
+    setTimeout(() => {
+      if (zone._jitToken !== token) return;
+      zone.innerHTML = subIndustriesHTML(selected);
+      zone.classList.remove('bcs-form-fading');
+      void zone.offsetWidth;
+      zone.classList.add('bcs-form-fading');
+    }, 520);
+  }
+
+  function rerenderConditional(form, strength) {
+    const zone = form.querySelector('[data-bcs-conditional]');
+    if (!zone) return;
+    // Bump a token so a rapid click cancels the previous "thinking" swap
+    const token = (zone._jitToken = (zone._jitToken || 0) + 1);
+    zone.classList.remove('bcs-form-fading');
+    zone.innerHTML = THINKING_HTML;
+    setTimeout(() => {
+      if (zone._jitToken !== token) return; // a newer click superseded this one
+      zone.innerHTML = conditionalHTML(strength);
+      zone.classList.remove('bcs-form-fading');
+      void zone.offsetWidth; // reflow so the animation restarts
+      zone.classList.add('bcs-form-fading');
+    }, 520);
+  }
+
+  function resetRefineCard(threadEl) {
+    const oldForm = threadEl.querySelector('[data-bcs-form="refine"]');
+    if (!oldForm) return;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = refineCardHTML();
+    oldForm.replaceWith(tmp.firstElementChild);
+  }
+
+  function wireRefineCard(threadEl) {
+    threadEl.addEventListener('click', (e) => {
+      const form = threadEl.querySelector('[data-bcs-form="refine"]');
+      if (!form || !form.contains(e.target)) return;
+
+      // Segmented single-select
+      const seg = e.target.closest('.bcs-segment');
+      if (seg) {
+        const wrap = seg.closest('.bcs-segmented');
+        wrap.querySelectorAll('.bcs-segment').forEach(s => s.classList.remove('selected'));
+        seg.classList.add('selected');
+        // Strength changes drive the contextual sections (intro stays static)
+        if (wrap.dataset.control === 'strength') {
+          rerenderConditional(form, seg.dataset.value);
+        }
+        return;
+      }
+      // Chip toggle
+      const chip = e.target.closest('.bcs-form-chip');
+      if (chip) {
+        chip.classList.toggle('selected');
+        // Toggling an Industry triggers a JIT regeneration of the sub-categories
+        if (chip.closest('[data-control="industries"]')) {
+          rerenderSubIndustries(form);
+        }
+        return;
+      }
+      // Apply / Reset
+      const action = e.target.closest('[data-action]')?.dataset.action;
+      if (action === 'reset') { resetRefineCard(threadEl); return; }
+      if (action === 'apply') {
+        const state = readRefineCard(form);
+        const home = msgsEl.querySelector('.bcs-thread[data-thread="home"]');
+        if (home) {
+          const wrap = document.createElement('div');
+          wrap.innerHTML = botMsg(
+            `<p>Refined just now ✓</p>
+             <p style="color:#666;font-size:12px;margin-top:4px;">${summarizeRefine(state)}</p>`
+          );
+          home.appendChild(wrap.firstElementChild);
+          home.scrollTop = home.scrollHeight;
+        }
+        switchThread('home');
+      }
+    });
+
+    // Range live readouts (delegated, so any range we render later works too)
+    threadEl.addEventListener('input', (e) => {
+      if (!e.target.matches('input.bcs-range')) return;
+      const form = threadEl.querySelector('[data-bcs-form="refine"]');
+      if (!form) return;
+      const id = e.target.dataset.control;
+      const readout = form.querySelector(`[data-readout="${id}"]`);
+      if (!readout) return;
+      const v = e.target.value;
+      if (id === 'size') readout.textContent = fmtSize(v);
+      else if (id === 'conservativeMinSignals') readout.textContent = `${v} signal${v === '1' ? '' : 's'}`;
+      else if (id === 'broadCap') readout.textContent = v;
+    });
+  }
+
+  function handleRefineClick() {
+    openThread('refine-criteria', {
+      title: 'Refine criteria',
+      contentHtml:
+        botMsg(`<p>Tweak the criteria below — I'll re-rank when you Apply.</p>`) +
+        botBlock(refineCardHTML()),
+      setup: wireRefineCard,
+    });
+  }
+  function handleStartOutreachClick() {
+    if (typeof window.startBreezeOutreach === 'function') {
+      window.startBreezeOutreach();
+    } else {
+      console.log('[Breeze] Start outreach — M3 not yet wired');
+    }
+  }
+})();
+
+/* ── M3: Escalate to focus-mode outreach (pinned next to chat) ─── */
+(function () {
+  function whenReady(cb) {
+    if (typeof window.openFocusMode === 'function') return cb();
+    let tries = 0;
+    const iv = setInterval(() => {
+      if (typeof window.openFocusMode === 'function' || ++tries > 40) {
+        clearInterval(iv);
+        if (typeof window.openFocusMode === 'function') cb();
+      }
+    }, 60);
+  }
+
+  window.startBreezeOutreach = function () {
+    whenReady(() => {
+      const overlay = document.getElementById('focusModeOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('closing');
+      // Phase 1: fade out the index panel (~180ms)
+      document.body.classList.add('bcs-mode-fading');
+      setTimeout(() => {
+        document.body.classList.remove('bcs-mode-fading');
+        document.body.classList.add('bcs-mode-active');
+
+        // Park the modal off-screen first, then transition in via rAF.
+        // (Inline styles work because the CSS rule uses `transition`, not animation.)
+        const modal = document.getElementById('fmModal');
+        if (modal) {
+          modal.style.transition = 'none';
+          modal.style.transform   = 'translateX(-100%)';
+          modal.style.opacity     = '.85';
+        }
+        overlay.classList.add('bcs-mode');
+        window.openFocusMode();
+        document.body.style.overflow = '';
+        requestAnimationFrame(() => {
+          if (modal) {
+            modal.style.transition = '';
+            modal.style.transform  = 'translateX(0)';
+            modal.style.opacity    = '1';
+          }
+        });
+
+        if (typeof window.openBreezeOutreachThread === 'function') {
+          const titleEl = document.getElementById('fmHeaderTitle');
+          const company = titleEl ? titleEl.textContent.replace(/^Outreach to\s*/i, '').trim() : '';
+          window.openBreezeOutreachThread(company);
+        }
+      }, 180);
+    });
+  };
+
+  // In bcs-mode, allow clicking anywhere on a context card to select it
+  // (rather than only the small check button on hover).
+  whenReady(() => {
+    const overlay = document.getElementById('focusModeOverlay');
+    if (!overlay) return;
+    overlay.addEventListener('click', (e) => {
+      if (!overlay.classList.contains('bcs-mode')) return;
+      const card = e.target.closest('.fm-card');
+      if (!card) return;
+      // Skip if the click landed on something that already has its own behavior
+      if (e.target.closest('.fm-card-check, .fm-drag, .fm-card-resize, a, input, textarea, select')) return;
+      const checkBtn = card.querySelector('.fm-card-check');
+      if (checkBtn) checkBtn.click();
+    });
+  });
+
+  // Wrap fmToggleCard so context-card selection drives the outreach thread.
+  // Mirrors focus-mode-outreach: single-select cards, marker pinned at bottom,
+  // past Q&A messages preserved above.
+  whenReady(() => {
+    const origToggle = window.fmToggleCard;
+    if (typeof origToggle !== 'function') return;
+    window.fmToggleCard = function (btn) {
+      const card = btn?.closest?.('.fm-card');
+      const wasSelected = !!card?.classList.contains('selected');
+      origToggle.call(this, btn);
+      const overlay = document.getElementById('focusModeOverlay');
+      if (!overlay?.classList.contains('bcs-mode')) return;
+      const isSelected = !!card?.classList.contains('selected');
+      if (!wasSelected && isSelected) {
+        const cardKey   = card.dataset.fmKey;
+        const cardTitle = card.querySelector('.fm-card-name')?.textContent?.trim()
+          || card.dataset.fmTitle || '';
+        window.setBreezeOutreachActiveCard?.(cardKey, cardTitle);
+      } else if (wasSelected && !isSelected) {
+        // User clicked the same card again — focus-block goes away
+        window.clearBreezeOutreachActiveCard?.();
+      }
+    };
+  });
+
+  // Wrap closeFocusMode to clean up bcs-mode and play exit animation
+  whenReady(() => {
+    const origCloseFn = window.closeFocusMode;
+    window.closeFocusMode = function () {
+      const overlay = document.getElementById('focusModeOverlay');
+      if (overlay && overlay.classList.contains('bcs-mode')) {
+        // Show the index panel before slide-out so it's visible behind the exiting modal
+        document.body.classList.remove('bcs-mode-active');
+        const modal = document.getElementById('fmModal');
+        if (modal) {
+          modal.style.transition = 'transform .3s cubic-bezier(.4,0,.6,1), opacity .2s ease';
+          modal.style.transform  = 'translateX(-100%)';
+          modal.style.opacity    = '.6';
+        }
+        setTimeout(() => {
+          overlay.classList.remove('open', 'bcs-mode', 'closing', 'full-width');
+          if (modal) {
+            modal.classList.remove('context-collapsed');
+            modal.style.transform = '';
+            modal.style.opacity = '';
+            modal.style.transition = '';
+          }
+          document.body.style.overflow = '';
+        }, 320);
+        return;
+      }
+      origCloseFn();
+    };
+  });
+
+  // Context collapse toggle
+  function wireContextToggle() {
+    const toggle = document.getElementById('fmContextToggle');
+    const show   = document.getElementById('fmContextShow');
+    const modal  = document.getElementById('fmModal');
+    if (!toggle || !show || !modal) return false;
+    toggle.addEventListener('click', () => modal.classList.add('context-collapsed'));
+    show.addEventListener('click',   () => modal.classList.remove('context-collapsed'));
+    return true;
+  }
+  if (!wireContextToggle()) {
+    let tries = 0;
+    const iv = setInterval(() => {
+      if (wireContextToggle() || ++tries > 20) clearInterval(iv);
+    }, 80);
+  }
+
+  // Contact tabs filter dropdown
+  function wireTabFilter() {
+    const wrap = document.getElementById('fmTabFilter');
+    const btn  = document.getElementById('fmTabFilterBtn');
+    const lbl  = document.getElementById('fmTabFilterLabel');
+    if (!wrap || !btn || !lbl) return false;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = wrap.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    wrap.querySelectorAll('.fm-tab-filter-item').forEach(item => {
+      item.addEventListener('click', () => {
+        wrap.querySelectorAll('.fm-tab-filter-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        lbl.textContent = item.dataset.filter;
+        wrap.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target)) {
+        wrap.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+    return true;
+  }
+  if (!wireTabFilter()) {
+    let tries = 0;
+    const iv = setInterval(() => {
+      if (wireTabFilter() || ++tries > 20) clearInterval(iv);
+    }, 80);
+  }
+})();
 </script>
-
-
-<!-- Footer Widget tray + switcher dropdown (overflow variant) -->
-<div class="fw-cards-tray" id="fwCardsTray"></div>
-<div class="fw-switcher-dd" id="fwSwitcherDd"></div>
 
 </body>
 </html>
