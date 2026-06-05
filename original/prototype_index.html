@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Downmarket — Prototypes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --border: #232323;
+      --accent: #ff5a36;
+      --text: #f0ede6;
+      --muted: #5a5a5a;
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-display); overflow-x: hidden; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.035; pointer-events: none; z-index: 100;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: clamp(24px, 4vw, 56px);
+    }
+
+    /* ---- header ---- */
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .back {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back:hover { color: var(--accent); }
+    .back svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .header-right { text-align: right; }
+    .section-label {
+      font-family: var(--font-mono); font-size: 9px;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--accent); border: 1px solid var(--accent);
+      padding: 3px 8px; border-radius: 2px; display: inline-block; margin-bottom: 8px;
+    }
+    .header-right h1 {
+      font-size: clamp(24px, 3.5vw, 40px);
+      font-weight: 800; letter-spacing: -0.03em; line-height: 1;
+    }
+
+    /* ---- file list ---- */
+    main { padding: 2px 0; }
+
+    .list-header {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 80px;
+      gap: 16px;
+      padding: 14px 20px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 80px;
+      gap: 16px;
+      align-items: center;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.2s;
+      animation: fadeUp 0.5s ease both;
+    }
+    .file-row:hover { background: var(--surface); }
+    .file-row:hover .file-name { color: var(--accent); }
+
+    .file-name {
+      display: flex; align-items: center; gap: 12px;
+      font-weight: 700; font-size: 15px; letter-spacing: -0.01em;
+      transition: color 0.2s;
+    }
+    .file-icon {
+      width: 30px; height: 30px; border-radius: 4px;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .file-icon svg { width: 14px; height: 14px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    .file-meta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+    .file-tag {
+      display: inline-block;
+      font-family: var(--font-mono); font-size: 9px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 2px;
+    }
+    .tag-live { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+    .tag-draft { background: color-mix(in srgb, #c8f04a 12%, transparent); color: #c8f04a; }
+    .tag-archive { background: color-mix(in srgb, var(--muted) 15%, transparent); color: var(--muted); }
+
+    .file-arrow { color: var(--muted); font-size: 18px; text-align: right; transition: color 0.2s, transform 0.2s; }
+    .file-row:hover .file-arrow { color: var(--accent); transform: translateX(4px); }
+
+    .empty-state {
+      padding: 80px 20px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .empty-state p { margin-top: 8px; font-size: 10px; }
+
+    /* ---- footer ---- */
+    footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 28px; border-top: 1px solid var(--border); margin-top: 2px;
+      animation: fadeUp 0.5s 0.3s ease both;
+    }
+    footer span { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 680px) {
+      .list-header, .file-row { grid-template-columns: 1fr auto; }
+      .list-header .col-date, .list-header .col-tag,
+      .file-row .file-meta, .file-row .file-tag { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <a class="back" href="../index.html">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Downmarket
+    </a>
+    <div class="header-right">
+      <span class="section-label">02 — Prototype</span>
+      <h1>Prototypes</h1>
+    </div>
+  </header>
+
+  <main>
+    <div class="list-header">
+      <span>File</span>
+      <span class="col-date">Last modified</span>
+      <span class="col-tag">Status</span>
+      <span></span>
+    </div>
+
+    <!-- ============================================================
+         HOW TO ADD A NEW PROTOTYPE:
+         1. Copy the block between the dashes below
+         2. Paste it above the "END OF LIST" comment
+         3. Change: href, File Name, Date, and tag (tag-live / tag-draft / tag-archive)
+         ============================================================
+
+    <a class="file-row" href="./YOUR-FILE-NAME.html">
+      <span class="file-name">
+        <span class="file-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+        File Name
+      </span>
+      <span class="file-meta">Mon YYYY</span>
+      <span class="file-tag tag-live">Live</span>
+      <span class="file-arrow">→</span>
+    </a>
+
+The only 3 tags you'll ever switch between are tag-live, tag-draft, and tag-archive.
+         ============================================================ -->
+
+    <a class="file-row" href="./Home.html" style="animation-delay:0.15s">
+      <span class="file-name">
+        <span class="file-icon"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span>
+        Home
+      </span>
+      <span class="file-meta">May 2026</span>
+      <span class="file-tag tag-live">Live</span>
+      <span class="file-arrow">→</span>
+    </a>
+
+    <a class="file-row" href="./Companies.html" style="animation-delay:0.2s">
+      <span class="file-name">
+        <span class="file-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg></span>
+        Companies
+      </span>
+      <span class="file-meta">May 2026</span>
+      <span class="file-tag tag-live">Live</span>
+      <span class="file-arrow">→</span>
+    </a>
+
+    <a class="file-row" href="./Record.html" style="animation-delay:0.25s">
+      <span class="file-name">
+        <span class="file-icon"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg></span>
+        Record
+      </span>
+      <span class="file-meta">May 2026</span>
+      <span class="file-tag tag-live">Live</span>
+      <span class="file-arrow">→</span>
+    </a>
+
+
+    <!-- ======================== END OF LIST ======================== -->
+
+  </main>
+
+  <footer>
+    <span>← <a href="../index.html" style="color:var(--muted);text-decoration:none;">Back to index</a></span>
+    <span style="color:var(--accent);">Prototypes</span>
+  </footer>
+
+</div>
+</body>
+</html>
